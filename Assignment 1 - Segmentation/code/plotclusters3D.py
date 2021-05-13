@@ -105,50 +105,6 @@ def meanshift_opt (data, r, c=4):
         for point in range(len(toLabel)):
              labels[toLabel[point]] = label
 
-
-
-
-    # data = data.transpose()
-    # labels = np.zeros(len(data))  # labels are numbers
-    # data = data.transpose()
-    # peaks = np.empty([0, 3])
-    #
-    # label = 1
-    # while 0 in labels:
-    #     print(len(np.where(labels == 0)[0]))
-    #     idx = np.where(labels == 0)[0][0]
-    #     data = data.transpose()
-    #     new_peak = findpeak(data, idx, r)  # TODO take first element with a zero label
-    #     peak_found = False
-    #     for peak in range(len(peaks)):
-    #         if math.sqrt(pow(peaks[peak][0] - new_peak[0], 2) +
-    #                      pow(peaks[peak][1] - new_peak[1], 2) +
-    #                      pow(peaks[peak][2] - new_peak[2], 2)) < r / 2:
-    #             print(True)
-    #             labels[idx] = peak
-    #             new_peak = peaks[peak]
-    #             peak_found = True
-    #             label = peak
-    #             break
-    #     if not peak_found:
-    #         print("here")
-    #         labels[idx] = label
-    #         peaks = np.vstack([peaks, new_peak])
-    #     data = data.transpose()
-    #     label += 1
-        # for i in range(len(data)):
-        #     data = data.transpose()
-        #     x = math.sqrt(pow(data[0][i] - new_peak[0], 2) +pow(data[1][i] - new_peak[1], 2) +pow(data[2][i] - new_peak[2], 2))
-        #     if x < r and labels[i] != 0:
-        #         print("extension")
-        #         labels[i] = label
-        #     data = data.transpose()
-
-        #toLabel = np.where(math.sqrt(pow(data[0] - new_peak[0], 2) +
-        #                             pow(data[1] - new_peak[1], 2) +
-        #                             pow(data[2] - new_peak[2], 2)) < r)
-        # for point in range(len(toLabel)):
-        #     labels[toLabel[point]] = label
     return labels, peaks
 
 # second speed up: points along path
@@ -158,16 +114,6 @@ def find_peak_opt(data, idx, r, threshold, c=4):
 
 
 def plotclusters3D(data, labels, peaks):
-    """
-    Plots the modes of the given image data in 3D by coloring each pixel
-    according to its corresponding peak.
-
-    Args:
-        data: image data in the format [number of pixels]x[feature vector].
-        labels: a list of labels, one for each pixel.
-        peaks: a list of vectors, whose first three components can
-        be interpreted as BGR values.
-    """
     data = data.transpose()
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
@@ -196,7 +142,7 @@ plotclusters3D(data, labels, peaks)
 img = cv2.imread('../data/img-1.jpg')
 
 img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-img = img.transpose()
+# img = img.transpose()
 # labels, peaks = meanshift_opt(img[0], r)
 # plotclusters3D(img[0], labels, peaks)
 
