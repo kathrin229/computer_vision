@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 mat = scipy.io.loadmat("../data/pts.mat")
 data = np.array(mat['data'])  # data set of 3D points
+data = data.transpose()
 
 # TODO: reshape data (with code below) and check code
 # suggestions during the tutorial:
@@ -21,11 +22,12 @@ def closest_node(node, nodes, d):
 def findpeak(data, idx, r, t=0.01):
     points_in_circle = np.empty([0, 3])
     # find first mean at index position
-    for point in range(len(data)):
-        if math.sqrt(pow(data[point][0] - data[idx][0], 2) +
-                     pow(data[point][1] - data[idx][1], 2) +
-                     pow(data[point][2] - data[idx][2], 2)) < r:
-            points_in_circle = np.vstack([points_in_circle, data[point]])
+    for point in data:
+        if math.sqrt(pow(point[0] - idx[0], 2) +
+                     pow(point[1] - idx[1], 2) +
+                     pow(point[2] - idx[2], 2)) < r:
+
+            points_in_circle = np.vstack([points_in_circle, point])
 
     # points_in_circle = closest_node(point, data, r)
     mean = np.mean(points_in_circle, axis=0)
@@ -34,11 +36,11 @@ def findpeak(data, idx, r, t=0.01):
     search = True
     while search:
         new_points_in_circle = np.empty([0, 3])
-        for point in range(len(data)):
-            if math.sqrt(pow(data[point][0] - mean[0], 2) +
-                         pow(data[point][1] - mean[1], 2) +
-                         pow(data[point][2] - mean[2], 2)) < r:
-                new_points_in_circle = np.vstack([new_points_in_circle, data[point]])
+        for point in data:
+            if math.sqrt(pow(point[0] - mean[0], 2) +
+                         pow(point[1] - mean[1], 2) +
+                         pow(point[2] - mean[2], 2)) < r:
+                new_points_in_circle = np.vstack([new_points_in_circle, point])
         # new_points_in_circle = closest_node(mean, data, r)
         new_mean = np.mean(new_points_in_circle, axis=0)
         if (mean[0] + t > new_mean[0] > mean[0] - t) \
@@ -52,23 +54,26 @@ def findpeak(data, idx, r, t=0.01):
 
 
 def meanshift(data, r):
-    data = data.transpose()
-    labels = np.zeros(len(data))  # labels are numbers
+    labels = np.zeros(len(data))  # labels are numbers TODO 1d shape -> 2d shape
     peaks = np.empty([0, 3])
 
     label = 1
-    for idx in range(len(data)):
-        new_peak = findpeak(data, idx, r)
+    label_idx = 0
+    for point in data:
+        print(point)
+        new_peak = findpeak(data, point, r)
         peak_found = False
-        for peak in range(len(peaks)):
-            if math.sqrt(pow(peaks[peak][0] - new_peak[0], 2) +
-                         pow(peaks[peak][1] - new_peak[1], 2) +
-                         pow(peaks[peak][2] - new_peak[2], 2)) < r/2:
-                labels[idx] = peak
+        for peak_idx, peak in enumerate(peaks):
+            if math.sqrt(pow(peak[0] - new_peak[0], 2) +
+                         pow(peak[1] - new_peak[1], 2) +
+                         pow(peak[2] - new_peak[2], 2)) < r/2:
+                labels[label_idx] = peak_idx
+                label_idx +=1
                 peak_found = True
                 break
         if not peak_found:
-            labels[idx] = label
+            labels[label_idx] = label
+            label_idx += 1
             label +=1
             peaks = np.vstack([peaks, new_peak])
 
@@ -78,32 +83,34 @@ def meanshift(data, r):
 # TODO List with labeled and unlabeled datapoints
 # first speedup: basin of attraction
 def meanshift_opt (data, r, c=4):
-    data = data.transpose()
     labels = np.zeros(len(data))  # labels are numbers
     peaks = np.empty([0, 3])
 
     label = 1
-    for idx in range(len(data)):
-        if not labels[idx] == 0:
+    label_idx = 0
+    for point in data:
+        if not labels[label_idx] == 0:
             pass
-        new_peak = findpeak(data, idx, r)
+        new_peak = findpeak(data, point, r)
         peak_found = False
         for peak in range(len(peaks)):
             if math.sqrt(pow(peaks[peak][0] - new_peak[0], 2) +
                          pow(peaks[peak][1] - new_peak[1], 2) +
                          pow(peaks[peak][2] - new_peak[2], 2)) < r / 2:
-                labels[idx] = peak
+                labels[label_idx] = peak
+                label_idx += 1
                 peak_found = True
                 new_peak = peak
                 break
         if not peak_found:
-            labels[idx] = label
+            labels[label_idx] = label
+            label_idx += 1
             label += 1
             peaks = np.vstack([peaks, new_peak])
 
         toLabel = closest_node(new_peak, data, r)
-        for point in range(len(toLabel)):
-             labels[toLabel[point]] = label
+        for point in toLabel:
+             labels[point] = label
 
     return labels, peaks
 
@@ -114,7 +121,6 @@ def find_peak_opt(data, idx, r, threshold, c=4):
 
 
 def plotclusters3D(data, labels, peaks):
-    data = data.transpose()
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     bgr_peaks = np.array(peaks[:, 0:3], dtype=float)
@@ -131,8 +137,9 @@ def plotclusters3D(data, labels, peaks):
 
 
 r = 2  # should give two clusters
-labels, peaks = meanshift_opt(data, r)
-plotclusters3D(data, labels, peaks)
+# labels, peaks = meanshift_opt(data, r)
+# labels, peaks = meanshift(data, r)
+# plotclusters3D(data, labels, peaks)
 # TODO: experiments - measure runtime?
 
 
@@ -143,8 +150,15 @@ img = cv2.imread('../data/img-1.jpg')
 
 img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
 # img = img.transpose()
-# labels, peaks = meanshift_opt(img[0], r)
-# plotclusters3D(img[0], labels, peaks)
+labels, peaks = meanshift(img, r)
+plotclusters3D(img, labels, peaks)
+
+# for point in img:
+#     print(point)
+
+# data = data.transpose()
+# for point in data:
+#     print(point)
 
 plt.imshow(img)
 plt.show()
