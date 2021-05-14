@@ -58,38 +58,22 @@ def meanshift(data, r):
     peaks = np.empty([0, 3])
 
     label_peak = dict()
-    label_peak[1] = 2
 
     label = 0  # has to be zero because of plot function
-    label_idx = 0
     for i, point in enumerate(data):
-        # print(point)
         new_peak = findpeak(data, point, r)
-        peak_found = False
         distances = cdist(peaks, new_peak, metric='euclidean')
-        distances = distances.flatten()
+        # distances = distances.flatten()
         indexes = np.where(distances < r/2)
-        # indexes = indexes.flatten()
-        # find peak in data and find label
 
+        # find peak in data and find label
         if indexes[0].size != 0:
-            # a = np.where(data == peaks[0][indexes[0]])
-            labels[i] = label_peak[str(peaks[indexes[0]])]
-            label_idx +=1
-        # for peak_idx, peak in enumerate(peaks):
-        #     if math.sqrt(pow(peak[0] - new_peak[0], 2) +
-        #                  pow(peak[1] - new_peak[1], 2) +
-        #                  pow(peak[2] - new_peak[2], 2)) < r/2:
-        #         labels[label_idx] = peak_idx #TODO check here
-        #         label_idx +=1
-        #         peak_found = True
-        #         break
-        else:
-            print("here")
             print(i)
+            labels[i] = label_peak['['+str(peaks[indexes[0][0]])+']']
+
+        else:
             label_peak[str(new_peak)] = label
             labels[i] = label
-            label_idx += 1
             label +=1
             peaks = np.vstack([peaks, new_peak])
 
@@ -153,10 +137,10 @@ def plotclusters3D(data, labels, peaks):
     fig.show()
 
 
-r = 2  # should give two clusters
+r = 40  # should give two clusters
 # labels, peaks = meanshift_opt(data, r)
-labels, peaks = meanshift(data, r)
-plotclusters3D(data, labels, peaks)
+# labels, peaks = meanshift(data, r) # WORKS!
+# plotclusters3D(data, labels, peaks)
 # TODO: experiments - measure runtime?
 
 
@@ -164,21 +148,14 @@ plotclusters3D(data, labels, peaks)
 # resize, blur, RGB to LAB
 
 img = cv2.imread('../data/img-1.jpg')
-
+img = cv2.resize(img, (30, 40), interpolation=cv2.INTER_NEAREST)
 img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-# img = img.transpose()
+plt.imshow(img)
+plt.show()
+
 img = img.transpose(2,0,1).reshape(3,-1)
 img = img.transpose()
 
-# labels, peaks = meanshift(img, r)
-# plotclusters3D(img, labels, peaks)
+labels, peaks = meanshift(img, r)
+plotclusters3D(img, labels, peaks)
 
-# for point in img:
-#     print(point)
-
-# data = data.transpose()
-# for point in data:
-#     print(point)
-
-# plt.imshow(img)
-# plt.show()
