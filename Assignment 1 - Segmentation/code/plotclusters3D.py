@@ -76,19 +76,30 @@ def meanshift(data, r):
 # first speedup: basin of attraction
 # TODO labels not working!!! -> commented code
 def meanshift_opt (data, r, c=4):
-    labels = np.zeros(len(data))  # labels are numbers #TODO: fill with -1
+    labels = np.empty(len(data))  # labels are numbers #TODO: fill with -1
+    labels.fill(-1)
     peaks = np.empty([0, 3])
+    print(labels)
 
     label_peak = dict()
 
     label = 0  # has to be zero because of plot function
-    for i, point in enumerate(data): # TODO: eliminate for loop here
+    #for i, point in enumerate(data): # TODO: eliminate for loop here
+    while True:
+        checkCondition = np.where(labels == -1)[0]
+        # print("size", i[0].size)
+        if(checkCondition.size) == 0:
+            print("here")
+            break
+        i = checkCondition[0]
+        point = data[i]
         new_peak = findpeak(data, point, r)
         distances = cdist(peaks, new_peak, metric='euclidean')
         indexes = np.where(distances < r / 2)
 
         # close peak already exists: same label
         if indexes[0].size != 0:
+            print("1")
             print(i)
             labels[i] = label_peak['[' + str(peaks[indexes[0][0]]) + ']']
             new_peak = peaks[indexes[0][0]]
@@ -100,6 +111,7 @@ def meanshift_opt (data, r, c=4):
                 labels[x] = new_label
 
         else:
+            print("2")
             label_peak[str(new_peak)] = label
             labels[i] = label
             peaks = np.vstack([peaks, new_peak])
