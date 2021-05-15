@@ -1,5 +1,4 @@
 import cv2
-import math
 import scipy.io
 import numpy as np
 import matplotlib.pyplot as plt
@@ -76,7 +75,7 @@ def meanshift(data, r):
 # first speedup: basin of attraction
 # TODO labels not working!!! -> commented code
 def meanshift_opt (data, r, c=4):
-    labels = np.empty(len(data))  # labels are numbers #TODO: fill with -1
+    labels = np.empty(len(data))  # labels are numbers, initially filled with -1
     labels.fill(-1)
     peaks = np.empty([0, 3])
     print(labels)
@@ -84,12 +83,9 @@ def meanshift_opt (data, r, c=4):
     label_peak = dict()
 
     label = 0  # has to be zero because of plot function
-    #for i, point in enumerate(data): # TODO: eliminate for loop here
     while True:
         checkCondition = np.where(labels == -1)[0]
-        # print("size", i[0].size)
-        if(checkCondition.size) == 0:
-            print("here")
+        if checkCondition.size == 0:
             break
         i = checkCondition[0]
         point = data[i]
@@ -99,7 +95,6 @@ def meanshift_opt (data, r, c=4):
 
         # close peak already exists: same label
         if indexes[0].size != 0:
-            print("1")
             print(i)
             labels[i] = label_peak['[' + str(peaks[indexes[0][0]]) + ']']
             new_peak = peaks[indexes[0][0]]
@@ -111,7 +106,6 @@ def meanshift_opt (data, r, c=4):
                 labels[x] = new_label
 
         else:
-            print("2")
             label_peak[str(new_peak)] = label
             labels[i] = label
             peaks = np.vstack([peaks, new_peak])
@@ -121,8 +115,6 @@ def meanshift_opt (data, r, c=4):
             for x in index_close_points[0]:
                 labels[x] = label
             label += 1
-
-
 
     return labels, peaks
 
@@ -149,10 +141,10 @@ def plotclusters3D(data, labels, peaks):
     fig.show()
 
 
-r = 2  # should give two clusters
-labels, peaks = meanshift_opt(data, r)
+r = 20  # should give two clusters
+# labels, peaks = meanshift_opt(data, r)
 # labels, peaks = meanshift(data, r) # WORKS!
-plotclusters3D(data, labels, peaks)
+# plotclusters3D(data, labels, peaks)
 # TODO: experiments - measure runtime?
 
 
@@ -169,5 +161,6 @@ img = img.transpose(2,0,1).reshape(3,-1)
 img = img.transpose()
 
 # labels, peaks = meanshift(img, r)
-# plotclusters3D(img, labels, peaks)
+labels, peaks = meanshift_opt(img, r)
+plotclusters3D(img, labels, peaks)
 
