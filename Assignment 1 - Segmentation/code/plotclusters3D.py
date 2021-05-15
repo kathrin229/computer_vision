@@ -9,16 +9,9 @@ mat = scipy.io.loadmat("../data/pts.mat")
 data = np.array(mat['data'])  # data set of 3D points
 data = data.transpose()
 
-# TODO: reshape data (with code below) and check code
 # suggestions during the tutorial:
 # points = loadmat("data/pts.mat")["data"].reshape(-1, 3)
 # mpl_toolkits.mplot3d
-
-
-def closest_node(node, nodes, d):
-    dist_2 = np.sum((nodes - node)**2, axis=1)
-    return np.where(dist_2 < d)
-
 
 def findpeak(data, idx, r, t=0.01):
     points_in_circle = np.empty([0, 3])
@@ -54,7 +47,7 @@ def findpeak(data, idx, r, t=0.01):
 
 
 def meanshift(data, r):
-    labels = np.zeros(len(data))  # labels are numbers TODO 1d shape -> 2d shape
+    labels = np.zeros(len(data))  # labels are numbers
     peaks = np.empty([0, 3])
 
     label_peak = dict()
@@ -63,10 +56,9 @@ def meanshift(data, r):
     for i, point in enumerate(data):
         new_peak = findpeak(data, point, r)
         distances = cdist(peaks, new_peak, metric='euclidean')
-        # distances = distances.flatten()
         indexes = np.where(distances < r/2)
 
-        # find peak in data and find label
+        # close peak already exists: same label
         if indexes[0].size != 0:
             print(i)
             labels[i] = label_peak['['+str(peaks[indexes[0][0]])+']']
@@ -84,40 +76,48 @@ def meanshift(data, r):
 # first speedup: basin of attraction
 # TODO labels not working!!! -> commented code
 def meanshift_opt (data, r, c=4):
-    labels = np.zeros(len(data))  # labels are numbers
+    labels = np.zeros(len(data))  # labels are numbers #TODO: fill with -1
     peaks = np.empty([0, 3])
 
-    label = 1
-    label_idx = 0
-    for point in data:
-        # if not labels[label_idx] == 0:
-        #     pass
-        new_peak = findpeak(data, point, r)
-        peak_found = False
-        for peak in range(len(peaks)):
-            if math.sqrt(pow(peaks[peak][0] - new_peak[0], 2) +
-                         pow(peaks[peak][1] - new_peak[1], 2) +
-                         pow(peaks[peak][2] - new_peak[2], 2)) < r / 2:
-                labels[label_idx] = peak
-                label_idx += 1
-                peak_found = True
-                new_peak = peak
-                break
-        if not peak_found:
-            labels[label_idx] = label
-            label_idx += 1
-            label += 1
-            peaks = np.vstack([peaks, new_peak])
+    label_peak = dict()
 
-        toLabel = closest_node(new_peak, data, r)
-        for point in toLabel:
-             labels[point] = label
+    label = 0  # has to be zero because of plot function
+    for i, point in enumerate(data): # TODO: eliminate for loop here
+        new_peak = findpeak(data, point, r)
+        distances = cdist(peaks, new_peak, metric='euclidean')
+        indexes = np.where(distances < r / 2)
+
+        # close peak already exists: same label
+        if indexes[0].size != 0:
+            print(i)
+            labels[i] = label_peak['[' + str(peaks[indexes[0][0]]) + ']']
+            new_peak = peaks[indexes[0][0]]
+            new_peak = new_peak.reshape(1, -1)
+            distances = cdist(data, new_peak, metric='euclidean')
+            index_close_points = np.where(distances < r)
+            new_label = label_peak['[' + str(peaks[indexes[0][0]]) + ']']
+            for x in index_close_points[0]:
+                labels[x] = new_label
+
+        else:
+            label_peak[str(new_peak)] = label
+            labels[i] = label
+            peaks = np.vstack([peaks, new_peak])
+            new_peak = new_peak.reshape(1, -1)
+            distances = cdist(data, new_peak, metric='euclidean')
+            index_close_points = np.where(distances < r)
+            for x in index_close_points[0]:
+                labels[x] = label
+            label += 1
+
+
 
     return labels, peaks
 
+
 # second speed up: points along path
 def find_peak_opt(data, idx, r, threshold, c=4):
-
+    # return mean (peak) and points that should be labeled
     pass
 
 
@@ -137,10 +137,10 @@ def plotclusters3D(data, labels, peaks):
     fig.show()
 
 
-r = 40  # should give two clusters
-# labels, peaks = meanshift_opt(data, r)
+r = 2  # should give two clusters
+labels, peaks = meanshift_opt(data, r)
 # labels, peaks = meanshift(data, r) # WORKS!
-# plotclusters3D(data, labels, peaks)
+plotclusters3D(data, labels, peaks)
 # TODO: experiments - measure runtime?
 
 
@@ -150,12 +150,12 @@ r = 40  # should give two clusters
 img = cv2.imread('../data/img-1.jpg')
 img = cv2.resize(img, (30, 40), interpolation=cv2.INTER_NEAREST)
 img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-plt.imshow(img)
-plt.show()
+# plt.imshow(img)
+# plt.show()
 
 img = img.transpose(2,0,1).reshape(3,-1)
 img = img.transpose()
 
-labels, peaks = meanshift(img, r)
-plotclusters3D(img, labels, peaks)
+# labels, peaks = meanshift(img, r)
+# plotclusters3D(img, labels, peaks)
 
