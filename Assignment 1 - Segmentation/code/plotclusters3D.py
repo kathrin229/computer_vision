@@ -4,6 +4,7 @@ import scipy.io
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import cdist
+from skimage import color
 
 mat = scipy.io.loadmat("../data/pts.mat")
 data = np.array(mat['data'])  # data set of 3D points
@@ -186,14 +187,17 @@ def plotclusters3D(data, labels, peaks):
     for idx, peak in enumerate(rgb_peaks):
         color = np.random.uniform(0, 1, 3)
         # TODO: instead of random color, you can use peaks when you work on actual images
-        # color = peak
+        color = peak
         cluster = data[np.where(labels == idx)[0]].T
         ax.scatter(cluster[0], cluster[1], cluster[2], c=[color], s=.5)
     print("showing figure")
     fig.show()
 
 
-r = 2  # should give two clusters
+# def segmIm(im, r):
+
+
+r = 40  # should give two clusters
 # labels, peaks = meanshift_opt(data, r)
 # labels, peaks = meanshift(data, r) # WORKS!
 # plotclusters3D(data, labels, peaks)
@@ -203,15 +207,45 @@ r = 2  # should give two clusters
 # TODO: image preprocessing
 # resize, blur, RGB to LAB
 
-img = cv2.imread('../data/img-1.jpg')
+img = cv2.imread('../data/img-3.jpg')
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+img = cv2.cvtColor(img, cv2.COLOR_Lab2RGB)
+print(img[0][0])
+plt.imshow(img)
+plt.show()
+img_resize = cv2.resize(img, (30, 40), interpolation=cv2.INTER_NEAREST)
 img = cv2.resize(img, (30, 40), interpolation=cv2.INTER_NEAREST)
-img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-# plt.imshow(img)
-# plt.show()
+plt.imshow(img)
+plt.show()
+img_height = 40 #len(img_resize[0])
+img_width = 30 #len(img_resize[1])
+img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+img_resize = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+# img = color.rgb2lab(img)
+plt.imshow(img)
+plt.show()
 
 img = img.transpose(2,0,1).reshape(3,-1)
 img = img.transpose()
 
-labels, peaks = meanshift(img, r)
-plotclusters3D(img, labels, peaks)
+labels, peaks = meanshift_opt(img, r)
+# peaks = peaks.reshape(len(peaks), 3, 1).transpose(0,2,1)
+# peaks = cv2.cvtColor(peaks, cv2.COLOR_LAB2RGB) TODO maybe ints solve problem
+# plotclusters3D(img, labels, peaks)
+
+# for idx in range(len(img)):
+#     img[idx] = peaks[int(labels[idx])]
+x = 0
+for i in range(img_height):
+    for j in range(img_width):
+        img_resize[i][j] = peaks[int(labels[x])]
+        x += 1
+
+# img = img.reshape(3, img_height, img_width).transpose(1, 2, 0)
+img_resize = cv2.cvtColor(img_resize, cv2.COLOR_LAB2RGB)
+# img_resize = color.lab2rgb(img_resize)
+plt.imshow(img_resize)
+plt.show()
+
 
