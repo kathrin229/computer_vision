@@ -1,4 +1,5 @@
 import cv2
+import math
 import scipy.io
 import numpy as np
 import matplotlib.pyplot as plt
@@ -75,7 +76,7 @@ def meanshift(data, r):
 # first speedup: basin of attraction
 # TODO labels not working!!! -> commented code
 def meanshift_opt (data, r, c=4):
-    labels = np.empty(len(data))  # labels are numbers, initially filled with -1
+    labels = np.empty(len(data))  # labels are numbers #TODO: fill with -1
     labels.fill(-1)
     peaks = np.empty([0, 3])
     print(labels)
@@ -83,18 +84,22 @@ def meanshift_opt (data, r, c=4):
     label_peak = dict()
 
     label = 0  # has to be zero because of plot function
+    #for i, point in enumerate(data): # TODO: eliminate for loop here
     while True:
         checkCondition = np.where(labels == -1)[0]
-        if checkCondition.size == 0:
+        # print("size", i[0].size)
+        if(checkCondition.size) == 0:
+            print("here")
             break
         i = checkCondition[0]
         point = data[i]
-        new_peak = findpeak(data, point, r)
+        new_peak, label_points = find_peak_opt(data, point, r)
         distances = cdist(peaks, new_peak, metric='euclidean')
         indexes = np.where(distances < r / 2)
 
         # close peak already exists: same label
         if indexes[0].size != 0:
+            print("1")
             print(i)
             labels[i] = label_peak['[' + str(peaks[indexes[0][0]]) + ']']
             new_peak = peaks[indexes[0][0]]
@@ -104,8 +109,11 @@ def meanshift_opt (data, r, c=4):
             new_label = label_peak['[' + str(peaks[indexes[0][0]]) + ']']
             for x in index_close_points[0]:
                 labels[x] = new_label
+            for label_point in label_points:
+                labels[int(label_point)] = new_label
 
         else:
+            print("2")
             label_peak[str(new_peak)] = label
             labels[i] = label
             peaks = np.vstack([peaks, new_peak])
@@ -114,14 +122,58 @@ def meanshift_opt (data, r, c=4):
             index_close_points = np.where(distances < r)
             for x in index_close_points[0]:
                 labels[x] = label
+            for label_point in label_points:
+                labels[int(label_point)] = label
             label += 1
 
     return labels, peaks
 
 
 # second speed up: points along path
-def find_peak_opt(data, idx, r, threshold, c=4):
+def find_peak_opt(data, idx, r, t = 0.01, c=4):
+    points_in_circle = np.empty([0, 3])
+    idx = idx.reshape(1, -1)
+
+    peak_indexes = np.empty([0, 1])
+
+    # find first mean at index position
+    distances = cdist(data, idx, metric='euclidean')
+    indexes = np.where(distances < r)
+    for index in indexes[0]:
+        points_in_circle = np.vstack([points_in_circle, data[index]])
+    mean = np.mean(points_in_circle, axis=0)
+
+    # TODO: for every mean, find surrounding points
+    # array with points that have to be labeled
+    # peak_points = np.empty([0, 3])
+
+    # move towards peak
+    search = True
+    while search:
+        new_points_in_circle = np.empty([0, 3])
+        mean = mean.reshape(1, -1)
+
+        distances = cdist(data, mean, metric='euclidean')
+        indexes = np.where(distances < r)
+        for index in indexes[0]:
+            new_points_in_circle = np.vstack([new_points_in_circle, data[index]])
+        new_mean = np.mean(new_points_in_circle, axis=0)
+        new_mean = new_mean.reshape(1, -1)
+
+        a = cdist(data, new_mean, metric='euclidean')
+        points = np.where(a < c)[0]
+        peak_indexes = np.append(peak_indexes, points)
+
+        # for point in points[0]:
+        #     peak_points = np.vstack([peak_points, data[point]])
+
+        d = cdist(mean, new_mean, metric='euclidean')
+        if d < t:
+            search = False
+        else:
+            mean = new_mean
     # return mean (peak) and points that should be labeled
+    return mean, peak_indexes
     pass
 
 
@@ -141,7 +193,7 @@ def plotclusters3D(data, labels, peaks):
     fig.show()
 
 
-r = 20  # should give two clusters
+r = 2  # should give two clusters
 # labels, peaks = meanshift_opt(data, r)
 # labels, peaks = meanshift(data, r) # WORKS!
 # plotclusters3D(data, labels, peaks)
@@ -160,7 +212,6 @@ img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
 img = img.transpose(2,0,1).reshape(3,-1)
 img = img.transpose()
 
-# labels, peaks = meanshift(img, r)
-labels, peaks = meanshift_opt(img, r)
+labels, peaks = meanshift(img, r)
 plotclusters3D(img, labels, peaks)
 
