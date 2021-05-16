@@ -73,10 +73,13 @@ def meanshift(data, r):
 
 # TODO List with labeled and unlabeled datapoints
 # first speedup: basin of attraction
-def meanshift_opt (data, r, c=4):
+def meanshift_opt (data, r, c=4, feature_space='3D'):
     labels = np.empty(len(data))  # labels are numbers, filled with -1
     labels.fill(-1)
-    peaks = np.empty([0, 3])
+    if feature_space == '3D':
+        peaks = np.empty([0, 3])
+    if feature_space == '5D':
+        peaks = np.empty([0, 5])
 
     label_peak = dict()
 
@@ -90,7 +93,7 @@ def meanshift_opt (data, r, c=4):
         if i % 10 == 0:
             print(i)
         point = data[i]
-        new_peak, label_points = find_peak_opt(data, point, r)
+        new_peak, label_points = find_peak_opt(data, point, r, c)
         distances = cdist(peaks, new_peak, metric='euclidean')
         indexes = np.where(distances < r / 2)
 
@@ -122,7 +125,7 @@ def meanshift_opt (data, r, c=4):
 
 
 # second speed up: points along path
-def find_peak_opt(data, idx, r, t = 0.01, c=4):
+def find_peak_opt(data, idx, r, c, t = 0.01):
     idx = idx.reshape(1, -1)
     peak_indexes = np.empty([0, 1])
 
@@ -175,16 +178,21 @@ def plotclusters3D(data, labels, peaks):
     fig.show()
 
 
-def segmIm(im, r):
+def segmIm(im, r, c, feature_space='3D'):
     start_time = time.time()
     img = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
     img_width, img_height, _ = img.shape
 
     # TODO: image preprocessing
     # resize, blur, RGB to LAB
-    img = cv2.resize(img, (int(img_width/2), int(img_height/2)), interpolation=cv2.INTER_NEAREST)
+    img = cv2.resize(img, (int(img_height/4), int(img_width/4)), interpolation=cv2.INTER_NEAREST)
     plt.imshow(img)
     plt.show()
+
+    if feature_space == '5D':
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        yx_coords = np.column_stack(np.where(gray >= 0))
+
 
     img_original = img
     img_width, img_height, _ = img.shape
@@ -192,9 +200,14 @@ def segmIm(im, r):
     img = img.transpose(2, 0, 1).reshape(3, -1)
     img = img.transpose()
 
-    # 5d: shape (481, 321, 5) or (38400, 5)
+    if feature_space == '5D':
+        img = np.append(img, yx_coords, axis=1)
 
-    labels, peaks = meanshift_opt(img, r)
+    labels, peaks = meanshift_opt(img, r, c, feature_space)
+
+    if feature_space == '5D':
+        peaks = np.delete(peaks, 3, 1)
+        peaks = np.delete(peaks, 3, 1)
 
     x = 0
     for i in range(img_width):
@@ -204,18 +217,20 @@ def segmIm(im, r):
 
     img_resize = cv2.cvtColor(img_original, cv2.COLOR_LAB2RGB)
     # img_resize = color.lab2rgb(img_resize)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    print("--- %s seconds ---" % (int(time.time() - start_time)))
     plt.imshow(img_resize)
     plt.show()
 
-r = 10  # 2 should give two clusters
+r = 30  # 2 should give two clusters
+c = 4
+feature_space = '3D'
 # labels, peaks = meanshift_opt(data, r)
 # labels, peaks = meanshift(data, r) # WORKS!
 # plotclusters3D(data, labels, peaks)
 # TODO: experiments - measure runtime?
 
 load_img = cv2.imread('../data/img-1.jpg')
-segmIm(load_img, r)
+segmIm(load_img, r, c,  feature_space=feature_space)
 
 # speedup ideas
 # - where different usage
