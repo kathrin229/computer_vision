@@ -3,8 +3,10 @@ import math
 import scipy.io
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 from scipy.spatial.distance import cdist
 from skimage import color
+
 
 mat = scipy.io.loadmat("../data/pts.mat")
 data = np.array(mat['data'])  # data set of 3D points
@@ -15,29 +17,25 @@ data = data.transpose()
 # mpl_toolkits.mplot3d
 
 def findpeak(data, idx, r, t=0.01):
-    points_in_circle = np.empty([0, 3])
     idx = idx.reshape(1,-1)
 
     # find first mean at index position
     distances = cdist(data, idx, metric='euclidean')
-    indexes = np.where(distances < r)
-    for index in indexes[0]:
-        points_in_circle = np.vstack([points_in_circle, data[index]])
+    indexes = np.where(distances < r)[0]
+    points_in_circle = data[indexes]
     mean = np.mean(points_in_circle, axis=0)
 
     # move towards peak
     search = True
     while search:
-        new_points_in_circle = np.empty([0, 3])
         mean = mean.reshape(1,-1)
 
         distances = cdist(data, mean, metric='euclidean')
-        indexes = np.where(distances < r)
-        for index in indexes[0]:
-            new_points_in_circle = np.vstack([new_points_in_circle, data[index]])
+        indexes = np.where(distances < r)[0]
+        new_points_in_circle = data[indexes]
         new_mean = np.mean(new_points_in_circle, axis=0)
-
         new_mean = new_mean.reshape(1, -1)
+
         d = cdist(mean, new_mean, metric='euclidean')
         if d < t:
             search = False
@@ -59,7 +57,7 @@ def meanshift(data, r):
         distances = cdist(peaks, new_peak, metric='euclidean')
         indexes = np.where(distances < r/2)
 
-        # close peak already exists: same label
+        # if close peak already exists: same label
         if indexes[0].size != 0:
             print(i)
             labels[i] = label_peak['['+str(peaks[indexes[0][0]])+']']
@@ -79,18 +77,18 @@ def meanshift_opt (data, r, c=4):
     labels = np.empty(len(data))  # labels are numbers, filled with -1
     labels.fill(-1)
     peaks = np.empty([0, 3])
-    print(labels)
 
     label_peak = dict()
 
     label = 0  # has to be zero because of plot function
     while True:
-        checkCondition = np.where(labels == -1)[0]
-        # print("size", i[0].size)
-        if(checkCondition.size) == 0:
+        points_without_label = np.where(labels == -1)[0]
+        if points_without_label.size == 0:
             print("here")
             break
-        i = checkCondition[0]
+        i = points_without_label[0]
+        if i % 10 == 0:
+            print(i)
         point = data[i]
         new_peak, label_points = find_peak_opt(data, point, r)
         distances = cdist(peaks, new_peak, metric='euclidean')
@@ -98,31 +96,26 @@ def meanshift_opt (data, r, c=4):
 
         # close peak already exists: same label
         if indexes[0].size != 0:
-            print("1")
-            print(i)
             labels[i] = label_peak['[' + str(peaks[indexes[0][0]]) + ']']
             new_peak = peaks[indexes[0][0]]
             new_peak = new_peak.reshape(1, -1)
+
             distances = cdist(data, new_peak, metric='euclidean')
-            index_close_points = np.where(distances < r)
+            index_close_points = np.where(distances < r)[0]
             new_label = label_peak['[' + str(peaks[indexes[0][0]]) + ']']
-            for x in index_close_points[0]:
-                labels[x] = new_label
-            for label_point in label_points:
-                labels[int(label_point)] = new_label
+            labels[index_close_points] = new_label
+            labels[label_points. astype(int)] = new_label
 
         else:
-            print("2")
             label_peak[str(new_peak)] = label
             labels[i] = label
             peaks = np.vstack([peaks, new_peak])
             new_peak = new_peak.reshape(1, -1)
+
             distances = cdist(data, new_peak, metric='euclidean')
-            index_close_points = np.where(distances < r)
-            for x in index_close_points[0]:
-                labels[x] = label
-            for label_point in label_points:
-                labels[int(label_point)] = label
+            index_close_points = np.where(distances < r)[0]
+            labels[index_close_points] = label
+            labels[label_points. astype(int)] = label
             label += 1
 
     return labels, peaks
@@ -130,45 +123,31 @@ def meanshift_opt (data, r, c=4):
 
 # second speed up: points along path
 def find_peak_opt(data, idx, r, t = 0.01, c=4):
-    points_in_circle = np.empty([0, 3])
     idx = idx.reshape(1, -1)
-
     peak_indexes = np.empty([0, 1])
 
     # find first mean at index position
-    # points = cdist(data, idx, metric='euclidean') < r
     distances = cdist(data, idx, metric='euclidean')
-    # indexes = np.where(distances < r)[0]
-    # points_in_circle = data[indexes]
-    indexes = np.where(distances < r)
-    for index in indexes[0]:
-        points_in_circle = np.vstack([points_in_circle, data[index]])
+    indexes = np.where(distances < r)[0]
+    points_in_circle = data[indexes]
     mean = np.mean(points_in_circle, axis=0)
     # TODO: find surrounding points for first mean
 
-    # TODO: for every mean, find surrounding points
-    # array with points that have to be labeled
-    # peak_points = np.empty([0, 3])
 
     # move towards peak
     search = True
     while search:
-        new_points_in_circle = np.empty([0, 3])
         mean = mean.reshape(1, -1)
 
         distances = cdist(data, mean, metric='euclidean')
-        indexes = np.where(distances < r)
-        for index in indexes[0]:
-            new_points_in_circle = np.vstack([new_points_in_circle, data[index]])
+        indexes = np.where(distances < r)[0]
+        new_points_in_circle = data[indexes]
         new_mean = np.mean(new_points_in_circle, axis=0)
         new_mean = new_mean.reshape(1, -1)
 
         a = cdist(data, new_mean, metric='euclidean')
         points = np.where(a < c)[0]
         peak_indexes = np.append(peak_indexes, points)
-
-        # for point in points[0]:
-        #     peak_points = np.vstack([peak_points, data[point]])
 
         d = cdist(mean, new_mean, metric='euclidean')
         if d < t:
@@ -197,18 +176,23 @@ def plotclusters3D(data, labels, peaks):
 
 
 def segmIm(im, r):
+    start_time = time.time()
     img = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-    plt.imshow(img)
-    plt.show()
+    img_width, img_height, _ = img.shape
 
     # TODO: image preprocessing
     # resize, blur, RGB to LAB
-    img = cv2.resize(img, (30, 40), interpolation=cv2.INTER_NEAREST)
+    img = cv2.resize(img, (int(img_width/2), int(img_height/2)), interpolation=cv2.INTER_NEAREST)
+    plt.imshow(img)
+    plt.show()
+
     img_original = img
     img_width, img_height, _ = img.shape
     img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
     img = img.transpose(2, 0, 1).reshape(3, -1)
     img = img.transpose()
+
+    # 5d: shape (481, 321, 5) or (38400, 5)
 
     labels, peaks = meanshift_opt(img, r)
 
@@ -220,6 +204,7 @@ def segmIm(im, r):
 
     img_resize = cv2.cvtColor(img_original, cv2.COLOR_LAB2RGB)
     # img_resize = color.lab2rgb(img_resize)
+    print("--- %s seconds ---" % (time.time() - start_time))
     plt.imshow(img_resize)
     plt.show()
 
