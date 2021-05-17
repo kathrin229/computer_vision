@@ -1,22 +1,45 @@
 import cv2
-import math
 import scipy.io
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 from scipy.spatial.distance import cdist
-from skimage import color
 
 
-mat = scipy.io.loadmat("../data/pts.mat")
-data = np.array(mat['data'])  # data set of 3D points
-data = data.transpose()
+def main():
+    # Loading data and image
+    mat = scipy.io.loadmat("../data/pts.mat")
+    data = np.array(mat['data'])
+    data = data.transpose()
 
-# suggestions during the tutorial:
-# points = loadmat("data/pts.mat")["data"].reshape(-1, 3)
-# mpl_toolkits.mplot3d
+    load_img = cv2.imread('../data/img-3.jpg')
+
+    # Parameters of the algorithm
+    r = 10
+    c = 30
+    feature_space = '5D'
+
+    # Testing algorithm on dataset pts.mat
+    # labels, peaks = meanshift_opt(data, r)
+    # labels, peaks = meanshift(data, r) # WORKS!
+    # plotclusters3D(data, labels, peaks)
+
+    # Image segmentation
+    segmIm(load_img, r, c,  feature_space=feature_space)
+
 
 def findpeak(data, idx, r, t=0.01):
+    '''
+
+    Args:
+        data: The data points in an channel x (X x Y) dimensional array
+        idx: the index for which the peak has to be found
+        r: the size of the basin of attraction
+        t: parameter avoiding too close peaks
+
+    Returns: the final mean (the peak)
+
+    '''
     idx = idx.reshape(1,-1)
 
     # find first mean at index position
@@ -46,12 +69,21 @@ def findpeak(data, idx, r, t=0.01):
 
 
 def meanshift(data, r):
-    labels = np.zeros(len(data))  # labels are numbers
+    '''
+
+        Args:
+            data: The data points in an channel x (X x Y) dimensional array
+            r: the size of the basin of attraction
+
+        Returns: an array of labels and an array with corresponding peaks
+
+        '''
+    labels = np.zeros(len(data))
     peaks = np.empty([0, 3])
 
     label_peak = dict()
 
-    label = 0  # has to be zero because of plot function
+    label = 0
     for i, point in enumerate(data):
         new_peak = findpeak(data, point, r)
         distances = cdist(peaks, new_peak, metric='euclidean')
@@ -71,10 +103,20 @@ def meanshift(data, r):
     return labels, peaks
 
 
-# TODO List with labeled and unlabeled datapoints
 # first speedup: basin of attraction
 def meanshift_opt (data, r, c=4, feature_space='3D'):
-    labels = np.empty(len(data))  # labels are numbers, filled with -1
+    '''
+
+    Args:
+        data: The data points in an channel x (X x Y) dimensional array
+        r: the size of the basin of attraction
+        c: parameter for the second speedup - how many points "on the way to the peak" belong to the peak
+        feature_space: 3D of 5D feature space
+
+    Returns: an array of labels and an array with corresponding peaks
+
+    '''
+    labels = np.empty(len(data))  # labels are numbers, filled with -1 initially
     labels.fill(-1)
     if feature_space == '3D':
         peaks = np.empty([0, 3])
@@ -83,11 +125,10 @@ def meanshift_opt (data, r, c=4, feature_space='3D'):
 
     label_peak = dict()
 
-    label = 0  # has to be zero because of plot function
+    label = 0
     while True:
         points_without_label = np.where(labels == -1)[0]
         if points_without_label.size == 0:
-            print("here")
             break
         i = points_without_label[0]
         if i % 10 == 0:
@@ -124,8 +165,19 @@ def meanshift_opt (data, r, c=4, feature_space='3D'):
     return labels, peaks
 
 
-# second speed up: points along path
-def find_peak_opt(data, idx, r, c, t = 0.01):
+def find_peak_opt(data, idx, r, c, t=0.01):
+    '''
+    second speed up
+    Args:
+        data: The data points in an channel x (X x Y) dimensional array
+        idx: the index for which the peak has to be found
+        r: the size of the basin of attraction
+        c: parameter for the second speedup - how many points "on the way to the peak" belong to the peak
+        t: parameter avoiding too close peaks
+
+    Returns: the final mean (the peak) and points found on the way that belong to this peak
+
+    '''
     idx = idx.reshape(1, -1)
     peak_indexes = np.empty([0, 1])
 
@@ -134,8 +186,6 @@ def find_peak_opt(data, idx, r, c, t = 0.01):
     indexes = np.where(distances < r)[0]
     points_in_circle = data[indexes]
     mean = np.mean(points_in_circle, axis=0)
-    # TODO: find surrounding points for first mean
-
 
     # move towards peak
     search = True
@@ -157,21 +207,30 @@ def find_peak_opt(data, idx, r, c, t = 0.01):
             search = False
         else:
             mean = new_mean
+
     # return mean (peak) and points that should be labeled
     return mean, peak_indexes
-    pass
 
 
 def plotclusters3D(data, labels, rgb_peaks):
+    '''
+
+    Args:
+        data: The data points
+        labels: Array of labels for each data point
+        rgb_peaks: Existing peaks
+
+    Returns: no return
+
+    '''
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
-    # bgr_peaks = np.array(peaks[:, 0:3], dtype=float)
-    # rgb_peaks = bgr_peaks[...,::-1]
+    # bgr_peaks = np.array(peaks[:, 0:3], dtype=float)  # commented out for image segmentation
+    # rgb_peaks = bgr_peaks[...,::-1]  # commented out for image segmentation
     rgb_peaks = rgb_peaks.astype(float)
     rgb_peaks /= 255
     for idx, peak in enumerate(rgb_peaks):
-        color = np.random.uniform(0, 1, 3)
-        # TODO: instead of random color, you can use peaks when you work on actual images
+        # color = np.random.uniform(0, 1, 3) # commented out for image segmentation
         color = peak
         cluster = data[np.where(labels == idx)[0]].T
         ax.scatter(cluster[0], cluster[1], cluster[2], c=[color], s=.5)
@@ -182,22 +241,34 @@ def plotclusters3D(data, labels, rgb_peaks):
 
 
 def segmIm(im, r, c, feature_space='3D'):
+    '''
+
+    Args:
+        im: The image read by cv2
+        r: The size of the basin of attraction
+        c: Parameter for the second speedup
+        feature_space: Either '3D' or '5D' for the different feature spaces
+
+    Returns: no returns. Plots of original image, image in LAB colour space, segmented image and clusters
+
+    '''
+
+    # Timer
     start_time = time.time()
+
+    # Image preprocessing:
     img = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
     img_width, img_height, _ = img.shape
-
-    # TODO: image preprocessing
-    # resize, blur, RGB to LAB
     img = cv2.resize(img, (int(img_height/2), int(img_width/2)), interpolation=cv2.INTER_NEAREST)
 
     if feature_space == '5D':
-        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        yx_coords = np.column_stack(np.where(gray >= 0))
+        coord_image = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        yx_coords = np.column_stack(np.where(coord_image >= 0))
 
     img_original = img
 
-    # kernel = np.ones((5, 5), np.float32) / 25
-    # img = cv2.filter2D(img, -1, kernel)
+    kernel = np.ones((5, 5), np.float32) / 25
+    img = cv2.filter2D(img, -1, kernel)
 
     img_width, img_height, _ = img.shape
     img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
@@ -207,8 +278,10 @@ def segmIm(im, r, c, feature_space='3D'):
     if feature_space == '5D':
         img = np.append(img, yx_coords, axis=1)
 
+    # Calling the mean-shift algorithm:
     labels, peaks = meanshift_opt(img, r, c, feature_space)
 
+    # Creation of segmented image:
     if feature_space == '5D':
         peaks = np.delete(peaks, 3, 1)
         peaks = np.delete(peaks, 3, 1)
@@ -222,13 +295,11 @@ def segmIm(im, r, c, feature_space='3D'):
             img_original[i][j] = peaks[int(labels[x])]
             x += 1
 
-    img_resize = cv2.cvtColor(img_original, cv2.COLOR_LAB2RGB)
+    img_cluster = cv2.cvtColor(img_original, cv2.COLOR_LAB2RGB)
 
-    peaks = img_resize.transpose(2, 0, 1).reshape(3, -1)
+    peaks = img_cluster.transpose(2, 0, 1).reshape(3, -1)
     peaks = peaks.transpose()
-
     peaks = np.unique(peaks, axis=0)
-
 
     print("--- %s seconds ---" % (int(time.time() - start_time)))
 
@@ -236,28 +307,12 @@ def segmIm(im, r, c, feature_space='3D'):
     plt.savefig('Lab')
     plt.show()
 
-
-    plt.imshow(img_resize)
+    plt.imshow(img_cluster)
     plt.savefig('Segment')
     plt.show()
     plotclusters3D(img, labels, peaks)
 
 
 
-r = 30  # 2 should give two clusters
-c = 10
-feature_space = '5D'
-
-start_time = time.time()
-labels, peaks = meanshift_opt(data, r)
-# labels, peaks = meanshift(data, r) # WORKS!
-plotclusters3D(data, labels, peaks)
-# TODO: experiments - measure runtime?
-print("--- %s seconds ---" % (time.time() - start_time))
-
-load_img = cv2.imread('../data/img-3.jpg')
-# segmIm(load_img, r, c,  feature_space=feature_space)
-
-# speedup ideas
-# - where different usage
-# - list conversion to np array by np concatenate? instead of vstack
+if __name__ == "__main__":
+    main()
