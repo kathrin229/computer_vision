@@ -162,20 +162,23 @@ def find_peak_opt(data, idx, r, c, t = 0.01):
     pass
 
 
-def plotclusters3D(data, labels, peaks):
+def plotclusters3D(data, labels, rgb_peaks):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
-    bgr_peaks = np.array(peaks[:, 0:3], dtype=float)
-    rgb_peaks = bgr_peaks[...,::-1]
-    rgb_peaks /= 255.0
+    # bgr_peaks = np.array(peaks[:, 0:3], dtype=float)
+    # rgb_peaks = bgr_peaks[...,::-1]
+    rgb_peaks = rgb_peaks.astype(float)
+    rgb_peaks /= 255
     for idx, peak in enumerate(rgb_peaks):
         color = np.random.uniform(0, 1, 3)
         # TODO: instead of random color, you can use peaks when you work on actual images
-        # color = peak
+        color = peak
         cluster = data[np.where(labels == idx)[0]].T
         ax.scatter(cluster[0], cluster[1], cluster[2], c=[color], s=.5)
     print("showing figure")
+    plt.savefig('Space')
     fig.show()
+
 
 
 def segmIm(im, r, c, feature_space='3D'):
@@ -185,16 +188,17 @@ def segmIm(im, r, c, feature_space='3D'):
 
     # TODO: image preprocessing
     # resize, blur, RGB to LAB
-    img = cv2.resize(img, (int(img_height/4), int(img_width/4)), interpolation=cv2.INTER_NEAREST)
-    plt.imshow(img)
-    plt.show()
+    img = cv2.resize(img, (int(img_height/2), int(img_width/2)), interpolation=cv2.INTER_NEAREST)
 
     if feature_space == '5D':
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         yx_coords = np.column_stack(np.where(gray >= 0))
 
-
     img_original = img
+
+    # kernel = np.ones((5, 5), np.float32) / 25
+    # img = cv2.filter2D(img, -1, kernel)
+
     img_width, img_height, _ = img.shape
     img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
     img = img.transpose(2, 0, 1).reshape(3, -1)
@@ -209,6 +213,9 @@ def segmIm(im, r, c, feature_space='3D'):
         peaks = np.delete(peaks, 3, 1)
         peaks = np.delete(peaks, 3, 1)
 
+    plt.imshow(img_original)
+    plt.show()
+
     x = 0
     for i in range(img_width):
         for j in range(img_height):
@@ -216,21 +223,40 @@ def segmIm(im, r, c, feature_space='3D'):
             x += 1
 
     img_resize = cv2.cvtColor(img_original, cv2.COLOR_LAB2RGB)
-    # img_resize = color.lab2rgb(img_resize)
+
+    peaks = img_resize.transpose(2, 0, 1).reshape(3, -1)
+    peaks = peaks.transpose()
+
+    peaks = np.unique(peaks, axis=0)
+
+
     print("--- %s seconds ---" % (int(time.time() - start_time)))
-    plt.imshow(img_resize)
+
+    plt.imshow(img_original)
+    plt.savefig('Lab')
     plt.show()
 
-r = 30  # 2 should give two clusters
-c = 4
-feature_space = '3D'
-# labels, peaks = meanshift_opt(data, r)
-# labels, peaks = meanshift(data, r) # WORKS!
-# plotclusters3D(data, labels, peaks)
-# TODO: experiments - measure runtime?
 
-load_img = cv2.imread('../data/img-1.jpg')
-segmIm(load_img, r, c,  feature_space=feature_space)
+    plt.imshow(img_resize)
+    plt.savefig('Segment')
+    plt.show()
+    plotclusters3D(img, labels, peaks)
+
+
+
+r = 30  # 2 should give two clusters
+c = 10
+feature_space = '5D'
+
+start_time = time.time()
+labels, peaks = meanshift_opt(data, r)
+# labels, peaks = meanshift(data, r) # WORKS!
+plotclusters3D(data, labels, peaks)
+# TODO: experiments - measure runtime?
+print("--- %s seconds ---" % (time.time() - start_time))
+
+load_img = cv2.imread('../data/img-3.jpg')
+# segmIm(load_img, r, c,  feature_space=feature_space)
 
 # speedup ideas
 # - where different usage
