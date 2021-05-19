@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
+import matplotlib.pyplot as plt
 
 data_cv = pd.read_csv('data/fer2013/fer2013/fer2013.csv').to_numpy()
 print(data_cv.shape)
@@ -17,10 +18,15 @@ data[:, 1:  len(data_cv[0, 1].split(' ')) + 1] = np.array([s.split(' ') for s in
 
 # images: shape 48 x 48
 
+
 # training, test, validation
 train = data[np.where(data[:, -1] == 2)]  # Training
 x_train = torch.from_numpy(train[:, 1:-1])
 y_train = torch.from_numpy(train[:, 0])
+
+img = x_train[0].reshape(48, 48)
+plt.imshow(img, cmap='gray')
+plt.show()
 
 test = data[np.where(data[:, -1] == 0)]  # PrivateTest
 x_test = torch.from_numpy(test[:, 1:])
