@@ -35,8 +35,13 @@ x_valid = torch.from_numpy(valid[:, 1:-1, :])
 y_valid_int = torch.from_numpy(valid[:, 0, :])
 y_valid = torch.nn.functional.one_hot(y_valid_int[:, 0].to(torch.int64))
 
+# reshape 3-dim input to 4-dim input
+x_train_2D = x_train.reshape(x_train.shape[0], int(np.sqrt(x_train.shape[1])), int(np.sqrt(x_train.shape[1])), x_train.shape[2])
+x_test_2D = x_test.reshape(x_test.shape[0], int(np.sqrt(x_test.shape[1])), int(np.sqrt(x_test.shape[1])), x_test.shape[2])
+x_valid_2D = x_valid.reshape(x_valid.shape[0], int(np.sqrt(x_valid.shape[1])), int(np.sqrt(x_valid.shape[1])), x_valid.shape[2])
+
 # images: shape 48 x 48
-img = x_train[0].reshape(48, 48)
+img = x_train[0].flatten().reshape(48, 48)
 plt.imshow(img, cmap='gray')
 plt.show()
 
