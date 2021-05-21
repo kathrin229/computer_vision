@@ -3,88 +3,65 @@ import numpy as np
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+import dataset
+from models import Conv2DNet
 
 
-data_cv = pd.read_csv('data/fer2013/fer2013/fer2013.csv').to_numpy()
-print(data_cv.shape)
-
-# convert "Training", "PrivateTest", "PublicTest" to ints
-unique_labels = np.unique(data_cv[:, 2])
-number_dict = dict(zip(unique_labels, range(len(unique_labels))))
-data_cv[:, 2] = np.array([number_dict[k] for k in data_cv[:, 2]])
-
-# convert string pixel values to ints
-data = np.zeros((data_cv.shape[0], len(data_cv[0, 1].split(' ')) + 2))
-data[:, 0] = data_cv[:, 0]
-data[:,  len(data_cv[0, 1].split(' ')) + 1] = data_cv[:, 2]
-data[:, 1:  len(data_cv[0, 1].split(' ')) + 1] = np.array([s.split(' ') for s in data_cv[:, 1]]).astype(int)
-
-# training, test, validation (x data shape: sample size, channel size, height, width)
-train = np.expand_dims(data[np.where(data[:, -1] == 2)], axis=2)  # Training
-x_train = torch.from_numpy(train[:, 1:-1, :])
-y_train_int = torch.from_numpy(train[:, 0, :])
-y_train = torch.nn.functional.one_hot(y_train_int[:, 0].to(torch.int64))
-
-test = np.expand_dims(data[np.where(data[:, -1] == 0)], axis=2)  # PrivateTest
-x_test = torch.from_numpy(test[:, 1:-1, :])
-y_test_int = torch.from_numpy(test[:, 0, :])
-y_test = torch.nn.functional.one_hot(y_test_int[:, 0].to(torch.int64))
-
-valid = np.expand_dims(data[np.where(data[:, -1] == 1)], axis=2)  # PublicTest
-x_valid = torch.from_numpy(valid[:, 1:-1, :])
-y_valid_int = torch.from_numpy(valid[:, 0, :])
-y_valid = torch.nn.functional.one_hot(y_valid_int[:, 0].to(torch.int64))
-
-# reshape 3-dim input to 4-dim input
-x_train_2D = x_train.reshape(x_train.shape[0], int(np.sqrt(x_train.shape[1])), int(np.sqrt(x_train.shape[1])), x_train.shape[2])
-x_test_2D = x_test.reshape(x_test.shape[0], int(np.sqrt(x_test.shape[1])), int(np.sqrt(x_test.shape[1])), x_test.shape[2])
-x_valid_2D = x_valid.reshape(x_valid.shape[0], int(np.sqrt(x_valid.shape[1])), int(np.sqrt(x_valid.shape[1])), x_valid.shape[2])
-
-# images: shape 48 x 48
-img = x_train[0].flatten().reshape(48, 48)
-plt.imshow(img, cmap='gray')
-plt.show()
-
-# input layer size, hidden layer size, output layer size and batch size (N)
-input_size = x_train.shape[1]
-hidden_size = 1
-output_size = 7
+architecture = Conv2DNet
+num_epochs = 10
+learning_rate = 0.0001
 batch_size = 64
+model_args = {
+    'input_size': 48,
+    'hidden_size': 64,
+    'num_classes': 7
+}
 
-# TODO: Ideas:
-# 1D Conv and 2D Conv
-# Hidden size
-# Number layers
-# Visualization
 
+data = dataset.load_data()
+train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_size, shuffle=True, drop_last=True)
+print("Finished loading data.")
 
-class ConvNet(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size): #, num_classes=N):
-        super(ConvNet, self).__init__()
+model = architecture(**model_args)
+loss = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-        self.cnn_layers = nn.Sequential(
-            # Defining a 2D convolution layer
-            nn.Conv2d(input_size, hidden_size, kernel_size=(3,3), stride=(1,1), padding=(1,1)),
-            nn.BatchNorm2d(4),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+for epoch in range(num_epochs):
+    for batch in train_loader:
+        x_train = batch[0]
+        y_train = batch[1]
 
-            # Defining another 2D convolution layer
-            nn.Conv2d(hidden_size, output_size, kernel_size=(3,3), stride=(1,1), padding=(1,1)),
-            nn.BatchNorm2d(4),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-        )
+        optimizer.zero_grad()
+        y_pred = model(x_train.float())
+        loss_train = loss(y_pred, y_train)
 
-        self.linear_layers = nn.Sequential(
-            nn.Linear(4 * 7 * 7, 10)
-        )
+        if epoch % 10 == 9:
+            print('Epoch {}:  Train loss: {}'.format(epoch, loss_train.item()))
 
-    # Defining the forward pass
-    def forward(self, x):
-        x = self.cnn_layers(x)
-        x = x.view(x.size(0), -1)
-        x = self.linear_layers(x)
-        return x
+        loss_train.backward()
+        optimizer.step()
+
+model.eval()
+with torch.no_grad():
+    correct = 0
+    total = 0
+    for img, labels in test_loader:
+        outputs = model(img.float())
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+    print('Test Accuracy: {}%'.format(100 * correct / total))
+
+# # images: shape 48 x 48
+# img = x_train[0].flatten().reshape(48, 48)
+# plt.imshow(img, cmap='gray')
+# plt.show()
+
+# # TODO: Ideas:
+# # 1D Conv and 2D Conv
+# # Hidden size
+# # Number layers
+# # Visualization
+
 
 
