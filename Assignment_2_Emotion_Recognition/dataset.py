@@ -52,8 +52,14 @@ def preprocess_data(data):
     # reshape 3-dim input to 4-dim input
     x_train_2D = x_train.reshape(x_train.shape[0], int(np.sqrt(x_train.shape[1])), int(np.sqrt(x_train.shape[1])),
                                  x_train.shape[2])
+    x_train_2D = x_train_2D.reshape(x_train_2D.shape[0], x_train_2D.shape[3], x_train_2D.shape[1], x_train_2D.shape[2])
+    print(x_train_2D.shape)
     x_test_2D = x_test.reshape(x_test.shape[0], int(np.sqrt(x_test.shape[1])), int(np.sqrt(x_test.shape[1])),
                                x_test.shape[2])
+    x_test_2D = x_test_2D.reshape(x_test_2D.shape[0], x_test_2D.shape[3], x_test_2D.shape[1], x_test_2D.shape[2])
+
+
+
     x_valid_2D = x_valid.reshape(x_valid.shape[0], int(np.sqrt(x_valid.shape[1])), int(np.sqrt(x_valid.shape[1])),
                                  x_valid.shape[2])
 

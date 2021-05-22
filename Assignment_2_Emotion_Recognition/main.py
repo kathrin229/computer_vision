@@ -13,7 +13,7 @@ learning_rate = 0.0001
 batch_size = 64
 model_args = {
     'input_size': 48,
-    'hidden_size': 64,
+    'hidden_size': 32,
     'num_classes': 7
 }
 
@@ -25,6 +25,8 @@ print("Finished loading data.")
 model = architecture(**model_args)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+print(model)
 
 for epoch in range(num_epochs):
     for batch in train_loader:
