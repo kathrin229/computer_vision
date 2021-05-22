@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import TensorDataset, DataLoader
+from models import Conv1DNet, Conv2DNet
 
 def load_data():
     print('Load data...')
@@ -32,7 +33,8 @@ def load_data():
         return np.load(dataset_path)
 
 
-def preprocess_data(data):
+def preprocess_data(data, architecture):
+
     # training, test, validation (x data shape: sample size, channel size, height, width)
     train = np.expand_dims(data[np.where(data[:, -1] == 2)], axis=2)  # Training
     x_train = torch.from_numpy(train[:, 1:-1, :])
@@ -49,27 +51,29 @@ def preprocess_data(data):
     y_valid = torch.from_numpy(valid[:, 0, :].flatten()).type(torch.LongTensor)
     # y_valid = torch.nn.functional.one_hot(y_valid_int[:, 0].to(torch.int64))
 
-    # reshape 3-dim input to 4-dim input
-    x_train_2D = x_train.reshape(x_train.shape[0], int(np.sqrt(x_train.shape[1])), int(np.sqrt(x_train.shape[1])),
-                                 x_train.shape[2])
-    x_train_2D = x_train_2D.reshape(x_train_2D.shape[0], x_train_2D.shape[3], x_train_2D.shape[1], x_train_2D.shape[2])
-    print(x_train_2D.shape)
-    x_test_2D = x_test.reshape(x_test.shape[0], int(np.sqrt(x_test.shape[1])), int(np.sqrt(x_test.shape[1])),
-                               x_test.shape[2])
-    x_test_2D = x_test_2D.reshape(x_test_2D.shape[0], x_test_2D.shape[3], x_test_2D.shape[1], x_test_2D.shape[2])
+    if architecture == Conv2DNet:
+
+        # reshape 3-dim input to 4-dim input
+        x_train_2D = x_train.reshape(x_train.shape[0], int(np.sqrt(x_train.shape[1])), int(np.sqrt(x_train.shape[1])),
+                                     x_train.shape[2])
+        x_train_2D = x_train_2D.reshape(x_train_2D.shape[0], x_train_2D.shape[3], x_train_2D.shape[1],
+                                        x_train_2D.shape[2])
+
+        x_test_2D = x_test.reshape(x_test.shape[0], int(np.sqrt(x_test.shape[1])), int(np.sqrt(x_test.shape[1])),
+                                   x_test.shape[2])
+        x_test_2D = x_test_2D.reshape(x_test_2D.shape[0], x_test_2D.shape[3], x_test_2D.shape[1], x_test_2D.shape[2])
+
+        x_valid_2D = x_valid.reshape(x_valid.shape[0], int(np.sqrt(x_valid.shape[1])), int(np.sqrt(x_valid.shape[1])),
+                                     x_valid.shape[2])
+
+        return x_train_2D, y_train, x_valid_2D, y_valid, x_test_2D, y_test
+    else:
+        return x_train, y_train, x_valid, y_valid, x_test, y_test
 
 
+def get_data_loader(data, batch_size, architecture, shuffle, drop_last):
 
-    x_valid_2D = x_valid.reshape(x_valid.shape[0], int(np.sqrt(x_valid.shape[1])), int(np.sqrt(x_valid.shape[1])),
-                                 x_valid.shape[2])
-
-    # return x_train, y_train, x_valid, y_valid, x_test, y_test
-    return x_train_2D, y_train, x_valid_2D, y_valid, x_test_2D, y_test
-
-
-def get_data_loader(data, batch_size, shuffle, drop_last):
-
-    x_train, y_train, x_valid, y_valid, x_test, y_test = preprocess_data(data)
+    x_train, y_train, x_valid, y_valid, x_test, y_test = preprocess_data(data, architecture)
 
     train_set = TensorDataset(x_train, y_train)
     valid_set = TensorDataset(x_valid, y_valid)

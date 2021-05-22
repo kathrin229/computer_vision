@@ -4,8 +4,11 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import dataset
-from models import Conv2DNet
+from models import Conv1DNet, Conv2DNet
 
+# TODO check seed - reproducibility
+torch.seed()
+torch.manual_seed(0)
 
 architecture = Conv2DNet
 num_epochs = 10
@@ -19,10 +22,12 @@ model_args = {
 
 
 data = dataset.load_data()
-train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_size, shuffle=True, drop_last=True)
+train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_size, architecture=architecture,
+                                                                  shuffle=True, drop_last=True)
 print("Finished loading data.")
 
 model = architecture(**model_args)
+print(model)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -35,6 +40,7 @@ for epoch in range(num_epochs):
 
         optimizer.zero_grad()
         y_pred = model(x_train.float())
+        y_valid = model()
         loss_train = loss(y_pred, y_train)
 
         if epoch % 10 == 9:
@@ -64,6 +70,4 @@ with torch.no_grad():
 # # Hidden size
 # # Number layers
 # # Visualization
-
-
 
