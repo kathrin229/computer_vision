@@ -27,6 +27,7 @@ train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_si
 print("Finished loading data.")
 
 model = architecture(**model_args)
+print(model)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -37,6 +38,7 @@ for epoch in range(num_epochs):
 
         optimizer.zero_grad()
         y_pred = model(x_train.float())
+        y_valid = model()
         loss_train = loss(y_pred, y_train)
 
         if epoch % 10 == 9:
