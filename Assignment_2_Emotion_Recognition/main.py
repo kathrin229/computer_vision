@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 import dataset
 from models import Conv1DNet, Conv2DNet
 
+# TODO check seed - reproducibility
+torch.seed()
+torch.manual_seed(0)
 
 architecture = Conv2DNet
 num_epochs = 10
