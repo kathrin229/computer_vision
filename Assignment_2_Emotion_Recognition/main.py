@@ -40,7 +40,7 @@ for epoch in range(num_epochs):
 
         optimizer.zero_grad()
         y_pred = model(x_train.float())
-        y_valid = model()
+        # y_valid = model()
         loss_train = loss(y_pred, y_train)
 
         if epoch % 10 == 9:
