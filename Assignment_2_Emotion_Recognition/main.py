@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import dataset
-from models import Conv2DNet
+from models import Conv1DNet, Conv2DNet
 
 
 architecture = Conv2DNet
@@ -19,7 +19,8 @@ model_args = {
 
 
 data = dataset.load_data()
-train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_size, shuffle=True, drop_last=True)
+train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_size, architecture=architecture,
+                                                                  shuffle=True, drop_last=True)
 print("Finished loading data.")
 
 model = architecture(**model_args)
@@ -62,6 +63,4 @@ with torch.no_grad():
 # # Hidden size
 # # Number layers
 # # Visualization
-
-
 
