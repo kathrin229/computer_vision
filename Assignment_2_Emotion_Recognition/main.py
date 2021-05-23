@@ -12,7 +12,7 @@ torch.seed()
 torch.manual_seed(0)
 
 architecture = Conv1DNet
-num_epochs = 10
+num_epochs = 1
 learning_rate = 0.0001
 batch_size = 64
 model_args = {
@@ -38,7 +38,14 @@ train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_si
                                                                   shuffle=True, drop_last=True)
 print("Finished loading data.\n")
 
-model = architecture(**model_args)
+if torch.cuda.is_available():
+    device = torch.cuda.current_device()
+    print('Current device:', torch.cuda.get_device_name(device))
+else:
+    print('Failed to find GPU. Will use CPU.')
+    device = 'cpu'
+
+model = architecture(**model_args).to(device)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -51,7 +58,9 @@ for epoch in range(num_epochs):
     ######################################################
     # training loop (iterates over training batches)
     ######################################################
-    for x_train, y_train in train_loader:
+    for batch in train_loader:
+        x_train = batch[0].to(device)
+        y_train = batch[1].to(device)
         # clear the old gradients from optimized variables
         optimizer.zero_grad()
         # forward pass: feed inputs to the model to get outputs
@@ -73,7 +82,9 @@ for epoch in range(num_epochs):
     valid_loss = 0.0
     # turn off gradients for validation
     with torch.no_grad():
-        for x_valid, y_valid in valid_loader:
+        for batch in valid_loader:
+            x_valid = batch[0].to(device)
+            y_valid = batch[1].to(device)
             # forward pass
             y_pred = model(x_valid.float())
             # validation batch loss
@@ -96,7 +107,9 @@ model.eval()
 with torch.no_grad():
     correct = 0
     total = 0
-    for x_test, y_test in test_loader:
+    for batch in test_loader:
+        x_test = batch[0].to(device)
+        y_test = batch[1].to(device)
         # forward pass
         y_pred = model(x_test.float())
         # validation batch loss
