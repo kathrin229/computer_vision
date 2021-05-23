@@ -12,7 +12,7 @@ from sklearn.metrics import precision_recall_fscore_support
 torch.seed()
 torch.manual_seed(0)
 
-architecture = Conv1DNet
+architecture = Conv2DNet
 num_epochs = 1
 learning_rate = 0.0001
 batch_size = 64
@@ -161,15 +161,61 @@ print(f'Test loss: {loss_test}.. Test Accuracy: {accuracy}')
 precision, recall, fscore, support = precision_recall_fscore_support(y_valid, predicted, average='macro')
 print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (macro): {fscore}')
 
-
-# # images: shape 48 x 48
-# img = x_train[0].flatten().reshape(48, 48)
-# plt.imshow(img, cmap='gray')
-# plt.show()
-
 # # TODO: Ideas:
 # # 1D Conv and 2D Conv
 # # Hidden size
 # # Number layers
 # # Visualization
 
+######################################################
+# visualization of feature maps for single image
+######################################################
+# reference: https://androidkt.com/how-to-visualize-feature-maps-in-convolutional-neural-networks-using-pytorch/
+
+img = torch.from_numpy(np.expand_dims(x_train[0], axis=0)).float()
+
+# accessing convolutional layers
+num_layers = 0
+conv_layers = []
+model_children = list(model.children())
+
+for child in model_children:
+    if type(child) == nn.Conv2d:
+        num_layers += 1
+        conv_layers.append(child)
+    elif type(child) == nn.Sequential:
+        for layer in child.children():
+            if type(layer) == nn.Conv2d:
+                num_layers += 1
+                conv_layers.append(layer)
+
+# pass image through network and store results
+results = [conv_layers[0](img)]
+for i in range(1, len(conv_layers)):
+    results.append(conv_layers[i](results[-1]))
+outputs = results
+
+# plot image
+plt.imshow(x_train[0].flatten().reshape(48, 48), cmap='gray')
+plt.show()
+
+# visualize feature maps of network
+for num_layer in range(len(outputs)):
+    fig = plt.figure(figsize=(50, 10))
+    layer_viz = outputs[num_layer][0, :, :, :]
+    layer_viz = layer_viz.data
+    title = "Layer %s" % (num_layer + 1)
+    print(title)
+    for i, conv_filter in enumerate(layer_viz):
+        if i == 16:
+            break
+        plt.subplot(2, 8, i + 1)
+        plt.imshow(conv_filter, cmap='gray')
+        plt.axis("off")
+        st = fig.suptitle(title, fontsize=50)
+        # shift subplots down:
+        st.set_y(0.95)
+        fig.subplots_adjust(top=0.85)
+    plt.savefig("img/layer%s_feature_maps.png" % str(num_layer + 1))
+    plt.show()
+    plt.close()

@@ -55,13 +55,13 @@ def preprocess_data(data, architecture):
 
         # reshape 3-dim input to 4-dim input
         x_train = x_train.reshape(x_train.shape[0], x_train.shape[1],
-                                     int(np.sqrt(x_train.shape[2])), int(np.sqrt(x_train.shape[2])))
+                                  int(np.sqrt(x_train.shape[2])), int(np.sqrt(x_train.shape[2])))
 
         x_test = x_test.reshape(x_test.shape[0], x_test.shape[1],
-                                     int(np.sqrt(x_test.shape[2])), int(np.sqrt(x_test.shape[2])))
+                                int(np.sqrt(x_test.shape[2])), int(np.sqrt(x_test.shape[2])))
 
         x_valid = x_valid.reshape(x_valid.shape[0], x_valid.shape[1],
-                                     int(np.sqrt(x_valid.shape[2])), int(np.sqrt(x_valid.shape[2])))
+                                  int(np.sqrt(x_valid.shape[2])), int(np.sqrt(x_valid.shape[2])))
 
     return x_train, y_train, x_valid, y_valid, x_test, y_test
 
