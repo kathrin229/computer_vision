@@ -5,6 +5,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import dataset
 from models import Conv1DNet, Conv2DNet
+from ignite.metrics import Precision, Recall
 
 # TODO check seed - reproducibility
 torch.seed()
@@ -14,9 +15,25 @@ architecture = Conv2DNet
 num_epochs = 10
 learning_rate = 0.0001
 batch_size = 64
+# model_args = {
+#     'input_size': 48,
+#     'hidden_size': 32,
+#     'num_classes': 7
+# }
 model_args = {
-    'input_size': 48,
-    'hidden_size': 32,
+    'input_channel': 1,
+
+    'channel_layer1': 32,
+    'kernel_layer1': 5,
+    'stride_layer1': 2,
+    'padding_layer1': 2,
+
+    'channel_layer2': 64,
+    'kernel_layer2': 5,
+    'stride_layer2': 2,
+    'padding_layer2': 2,
+
+    'channel_linear': 3*3*64,
     'num_classes': 7
 }
 
@@ -65,7 +82,6 @@ for epoch in range(num_epochs):
         valid_loss = loss_valid.item() * len(batch[0])
 
     print(f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(train_loader)} \t\t Validation Loss: {valid_loss / len(valid_loader)}')
-
 
 model.eval()
 with torch.no_grad():
