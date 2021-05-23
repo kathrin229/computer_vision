@@ -18,16 +18,18 @@ class Conv1DNet(nn.Module):
         super(Conv1DNet, self).__init__()
 
         self.cnn_layers = nn.Sequential(
-            # Defining a 2D convolution layer
-            nn.Conv1d(1, 32, kernel_size=5, stride=2, padding=2),
+            # Defining a 1D convolution layer
+            nn.Conv1d(input_channel, channel_layer1, kernel_size=kernel_layer1, stride=stride_layer1, padding=padding_layer1),
             nn.BatchNorm1d(channel_layer1),
             nn.ReLU(inplace=True),
             nn.MaxPool1d(kernel_size=2, stride=2),
 
         )
 
+        self.drop_out = nn.Dropout()  # default 0.5
+
         self.linear_layers = nn.Sequential(
-            nn.Linear(24*24*32, 32),
+            nn.Linear(24*24*channel_layer1, channel_linear),
             nn.Linear(channel_linear, num_classes)
         )
 
