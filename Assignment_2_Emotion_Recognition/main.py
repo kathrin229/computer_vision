@@ -129,7 +129,6 @@ for epoch in range(num_epochs):
         model.load_state_dict(weights)
         break
 
-
 ######################################################
 # test loop
 ######################################################
@@ -161,11 +160,6 @@ print(f'Test loss: {loss_test}.. Test Accuracy: {accuracy}')
 precision, recall, fscore, support = precision_recall_fscore_support(y_valid, predicted, average='macro')
 print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (macro): {fscore}')
 
-# # TODO: Ideas:
-# # 1D Conv and 2D Conv
-# # Hidden size
-# # Number layers
-# # Visualization
 
 ######################################################
 # visualization of feature maps for single image
