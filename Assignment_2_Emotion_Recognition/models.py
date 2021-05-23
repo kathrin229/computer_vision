@@ -44,15 +44,17 @@ class Conv2DNet(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
 
             # # Defining another 2D convolution layer
-            # nn.Conv2d(hidden_size, num_classes, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
-            # nn.BatchNorm2d(num_classes),
-            # nn.ReLU(inplace=True),
-            # nn.MaxPool2d(kernel_size=1, stride=1),
+            nn.Conv2d(32, 64, kernel_size=(5, 5), stride=(1, 1), padding=2),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
         )
 
+        self.drop_out = nn.Dropout()  # default 0.5
+
         self.linear_layers = nn.Sequential(
-            nn.Linear(24*24*32, 32),
-            nn.Linear(hidden_size, num_classes)
+            nn.Linear(12*12*64, 64),#nn.Linear(24*24*32, 32),
+            nn.Linear(64, num_classes)
         )
 
     # Defining the forward pass

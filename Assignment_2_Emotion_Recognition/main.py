@@ -33,21 +33,39 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 print(model)
 
+min_valid_loss = np.inf
+
 for epoch in range(num_epochs):
+    train_loss = 0.0
     for batch in train_loader:
         x_train = batch[0]
         y_train = batch[1]
 
         optimizer.zero_grad()
         y_pred = model(x_train.float())
-        # y_valid = model()
         loss_train = loss(y_pred, y_train)
-
-        if epoch % 10 == 9:
-            print('Epoch {}:  Train loss: {}'.format(epoch, loss_train.item()))
 
         loss_train.backward()
         optimizer.step()
+
+        train_loss = loss_train.item() * len(batch[0])
+
+    valid_loss = 0.0
+    for batch in valid_loader:
+        x_valid = batch[0]
+        y_valid = batch[1]
+
+        optimizer.zero_grad()
+        y_pred = model(x_valid.float())
+        loss_valid = loss(y_pred, y_valid)
+
+        loss_valid.backward()
+        optimizer.step()
+
+        valid_loss = loss_valid.item() * len(batch[0])
+
+    print(f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(train_loader)} \t\t Validation Loss: {valid_loss / len(valid_loader)}')
+
 
 model.eval()
 with torch.no_grad():
