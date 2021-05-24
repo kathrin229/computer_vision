@@ -1,19 +1,21 @@
+import os
 import numpy as np
+import pandas as pd
 import copy
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import dataset
 from models import Conv1DNet, Conv2DNet
-from sklearn.metrics import precision_recall_fscore_support
-
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+import plots
 
 # TODO check seed - reproducibility
 torch.seed()
 torch.manual_seed(0)
 
 architecture = Conv2DNet
-num_epochs = 1
+num_epochs = 3
 learning_rate = 0.0001
 batch_size = 64
 patience = 15
@@ -30,22 +32,23 @@ model_args = {
     'stride_layer2': 2,
     'padding_layer2': 2,
 
-    'channel_linear': 3*3*64,
+    'channel_linear': 3 * 3 * 64,
     'num_classes': 7
 }
 
-emotion_dict = {
-    0: 'angry',
-    1: 'disgust',
-    2: 'fear',
-    3: 'happy',
-    4: 'sad',
-    5: 'surprise',
-    6: 'neutral',
+DATA_DIR = "./data/"
+dataset_path = os.path.join(DATA_DIR, 'data.npy')
+classes = {
+    0: 'Angry',
+    1: 'Disgust',
+    2: 'Fear',
+    3: 'Happy',
+    4: 'Sad',
+    5: 'Surprise',
+    6: 'Neutral'
 }
 
-
-data = dataset.load_data()
+data = dataset.load_data(src='data/fer2013/fer2013/fer2013.csv', dest=dataset_path)
 train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_size, architecture=architecture,
                                                                   shuffle=True, drop_last=True)
 print("Finished loading data.\n")
@@ -67,10 +70,13 @@ print("\n")
 min_valid_loss = np.inf
 stopping = 0
 max_val_acc = 0
+train_loss_all = []
+valid_loss_all = []
 
 print("Fit model...")
 for epoch in range(num_epochs):
     train_loss, train_correct, train_total = 0, 0, 0
+    train_epoch_loss = []
     ######################################################
     # training loop (iterates over training batches)
     ######################################################
@@ -89,10 +95,13 @@ for epoch in range(num_epochs):
         optimizer.step()
         # accumulate the training loss
         train_loss += loss_train.item()
+        train_epoch_loss.append(loss_train.item())
         # calculate the accuracy
         predicted = torch.argmax(y_pred, 1)
         train_total += y_train.size(0)
         train_correct += (predicted == y_train).sum().item()
+
+    train_loss_all.append(sum(train_epoch_loss) / len(train_epoch_loss))
 
     ######################################################
     # validation loop
@@ -100,6 +109,7 @@ for epoch in range(num_epochs):
     # set the model to eval mode
     model.eval()
     valid_loss, valid_correct, valid_total = 0, 0, 0
+    valid_epoch_loss = []
     # turn off gradients for validation
     with torch.no_grad():
         for batch in valid_loader:
@@ -111,18 +121,21 @@ for epoch in range(num_epochs):
             loss_valid = loss(y_pred, y_valid)
             # accumulate the validation loss
             valid_loss += loss_valid.item()
+            valid_epoch_loss.append(loss_valid.item())
             # calculate the accuracy
             predicted = torch.argmax(y_pred, 1)
             valid_total += y_valid.size(0)
             valid_correct += (predicted == y_valid).sum().item()
+
+    valid_loss_all.append(sum(valid_epoch_loss) / len(valid_epoch_loss))
 
     # print epoch results
     train_loss /= len(train_loader)
     valid_loss /= len(valid_loader)
     train_accuracy = train_correct / len(train_loader)
     valid_accuracy = valid_correct / len(valid_loader)
-    print(f'Epoch: {epoch+1}/{num_epochs}.. '
-          f'Training loss: {train_loss}.. Validation Loss: {valid_loss}'
+    print(f'Epoch: {epoch + 1}/{num_epochs}.. '
+          f'Training loss: {train_loss}.. Validation Loss: {valid_loss}.. '
           f'Training accuracy: {train_accuracy}.. Validation accuracy: {valid_accuracy}')
 
     # early stopping
@@ -139,12 +152,18 @@ for epoch in range(num_epochs):
         model.load_state_dict(weights)
         break
 
+# plotting training and validation loss
+plots.plot_train_val(np.linspace(1, epoch+1, epoch+1).astype(int),
+                     train_loss_all, valid_loss_all,
+                     metric="Cross Entropy", IMG_DIR=f'./img/{model.__class__.__name__}')
+
 ######################################################
 # test loop
 ######################################################
 print("Test model...")
 # set the model to eval mode
 model.eval()
+# turn off gradients for validation
 plot = True
 # turn off gradients for validation
 with torch.no_grad():
@@ -169,28 +188,30 @@ with torch.no_grad():
                 plt.subplot(2, 4, i + 1)
                 plt.axis("off")
                 plt.imshow(x_test[i].flatten().reshape(48, 48), cmap='gray')
-                plt.title(emotion_dict[predicted[i].item()] + ' (' + emotion_dict[y_test[i].item()] +')')
-                # plt.suptitle("a")# y_test[i].item())
+                plt.title(classes[predicted[i].item()] + ' (' + classes[y_test[i].item()] +')')
             plt.show()
             plot = False
-
     print('Test Accuracy: {}%'.format(100 * test_correct / test_total))
 
 test_loss /= len(test_loader)
 accuracy = test_correct / len(test_loader)
 print(f'Test loss: {loss_test}.. Test Accuracy: {accuracy}')
 
-precision, recall, fscore, support = precision_recall_fscore_support(y_valid, predicted, average='macro')
+precision, recall, fscore, support = precision_recall_fscore_support(y_test.cpu(), predicted.cpu(), average='macro')
 print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (macro): {fscore}')
 
+# plot confusion matrix
+cf_matrix = confusion_matrix(y_test.cpu(), predicted.cpu())
+plots.print_confusion_matrix(cf_matrix, class_names=[classes[c] for c in np.unique(y_test.cpu())])
 
 ######################################################
 # visualization of feature maps for single image
 ######################################################
 # reference: https://androidkt.com/how-to-visualize-feature-maps-in-convolutional-neural-networks-using-pytorch/
 
-# img = torch.from_numpy(np.expand_dims(x_train[0], axis=0)).float()
-img = torch.from_numpy(np.expand_dims(x_test[0], axis=0)).float()
+IMG_DIR = "./img/"
+
+img = x_train[0].unsqueeze(0).type(torch.FloatTensor).to(device)
 
 # accessing convolutional layers
 num_layers = 0
@@ -214,8 +235,7 @@ for i in range(1, len(conv_layers)):
 outputs = results
 
 # plot image
-# plt.imshow(x_train[0].flatten().reshape(48, 48), cmap='gray')
-plt.imshow(x_test[0].flatten().reshape(48, 48), cmap='gray')
+plt.imshow(x_train[0].cpu().flatten().reshape(48, 48), cmap='gray')
 plt.show()
 
 # visualize feature maps of network
@@ -229,12 +249,12 @@ for num_layer in range(len(outputs)):
         if i == 16:
             break
         plt.subplot(2, 8, i + 1)
-        plt.imshow(conv_filter, cmap='gray')
+        plt.imshow(conv_filter.cpu(), cmap='gray')
         plt.axis("off")
         st = fig.suptitle(title, fontsize=50)
         # shift subplots down:
         st.set_y(0.95)
         fig.subplots_adjust(top=0.85)
-    plt.savefig("img/layer%s_feature_maps.png" % str(num_layer + 1))
+    plt.savefig(IMG_DIR + model.__class__.__name__ + "_layer%s_feature_maps.png" % str(num_layer + 1))
     plt.show()
     plt.close()
