@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-import torch
 
 
 def plot_train_val(epochs, loss_train, loss_val, metric, IMG_DIR):
@@ -67,16 +66,15 @@ def print_confusion_matrix(confusion_matrix, class_names, figsize=(10,7), fontsi
     heatmap.xaxis.set_ticklabels(heatmap.xaxis.get_ticklabels(), rotation=45, ha='right', fontsize=fontsize)
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    # Note that due to returning the created figure object, when this funciton is called in a notebook
+    # Note that due to returning the created figure object, when this function is called in a notebook
     # the figure will be printed twice. To prevent this, either append ; to your function call, or
     # modify the function by commenting out this return expression.
     plt.savefig(filename)
     plt.show()
 
 
-def plot_predictions(x_test, y_test, predicted, classes, device, filename):
+def plot_predictions(x_test, y_test, predicted, classes, filename):
     for i in range(8):
-        img = x_test[i].unsqueeze(0).type(torch.FloatTensor).to(device)
         plt.subplot(2, 4, i + 1)
         plt.axis("off")
         plt.imshow(x_test[i].flatten().reshape(48, 48), cmap='gray')
