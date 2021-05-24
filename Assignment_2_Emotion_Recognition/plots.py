@@ -79,6 +79,6 @@ def plot_predictions(x_test, y_test, predicted, classes, filename):
         plt.subplot(2, 4, i + 1)
         plt.axis("off")
         plt.imshow(x_test[i].flatten().reshape(48, 48), cmap='gray')
-        plt.title(classes[predicted[i].item()] + ' (' + classes[y_test[i].item()] + ')', fontsize=10)
+        plt.title(classes[predicted[i].item()] + ' (' + classes[y_test[i].item()] + ')', fontsize=12)
     plt.savefig(filename)
     plt.show()
