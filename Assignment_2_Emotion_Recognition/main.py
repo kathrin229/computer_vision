@@ -114,12 +114,15 @@ min_valid_loss = np.inf
 stopping = 0
 max_val_acc = 0
 train_loss_all = []
+train_acc_all = []
 valid_loss_all = []
+valid_acc_all = []
 
 print("Fit model...")
 for epoch in range(num_epochs):
     train_loss, train_correct, train_total = 0, 0, 0
     train_epoch_loss = []
+    train_acc_epoch = []
     ######################################################
     # training loop (iterates over training batches)
     ######################################################
@@ -143,8 +146,10 @@ for epoch in range(num_epochs):
         predicted = torch.argmax(y_pred, 1)
         train_total += y_train.size(0)
         train_correct += (predicted == y_train).sum().item()
+        train_acc_epoch.append((predicted == y_train).sum().item())
 
     train_loss_all.append(sum(train_epoch_loss) / len(train_epoch_loss))
+    train_acc_all.append(sum(train_acc_epoch) / len(train_acc_epoch))
 
     ######################################################
     # validation loop
@@ -153,6 +158,7 @@ for epoch in range(num_epochs):
     model.eval()
     valid_loss, valid_correct, valid_total = 0, 0, 0
     valid_epoch_loss = []
+    valid_acc_epoch = []
     # turn off gradients for validation
     with torch.no_grad():
         for batch in valid_loader:
@@ -169,8 +175,10 @@ for epoch in range(num_epochs):
             predicted = torch.argmax(y_pred, 1)
             valid_total += y_valid.size(0)
             valid_correct += (predicted == y_valid).sum().item()
+            valid_acc_epoch.append((predicted == y_valid).sum().item())
 
     valid_loss_all.append(sum(valid_epoch_loss) / len(valid_epoch_loss))
+    valid_acc_all.append(sum(valid_acc_epoch) / len(valid_acc_epoch))
 
     # print epoch results
     train_loss /= train_total  # len(train_loader)
@@ -181,9 +189,23 @@ for epoch in range(num_epochs):
           f'Training loss: {train_loss}.. Validation Loss: {valid_loss}.. '
           f'Training accuracy: {train_accuracy}.. Validation accuracy: {valid_accuracy}')
 
-    # early stopping
-    if max_val_acc < valid_accuracy:
-        max_val_acc = valid_accuracy
+    # # early stopping (based on validation accuracy)
+    # if max_val_acc < valid_accuracy:
+    #     max_val_acc = valid_accuracy
+    #     weights = copy.deepcopy(model.state_dict())
+    #     stopping = 0
+    # else:
+    #     stopping = stopping + 1
+    #
+    # if stopping == patience:
+    #     print('Early stopping...')
+    #     print('Restoring best weights')
+    #     model.load_state_dict(weights)
+    #     break
+
+    # early stopping (based on validation loss)
+    if min_valid_loss > valid_loss:
+        min_valid_loss = valid_loss
         weights = copy.deepcopy(model.state_dict())
         stopping = 0
     else:
@@ -199,6 +221,9 @@ for epoch in range(num_epochs):
 plots.plot_train_val(np.linspace(1, epoch + 1, epoch + 1).astype(int),
                      train_loss_all, valid_loss_all,
                      metric="Cross Entropy", IMG_DIR=f'{model.__class__.__name__}')
+plots.plot_train_val(np.linspace(1, epoch + 1, epoch + 1).astype(int),
+                     train_acc_all, valid_acc_all,
+                     metric="Accuracy", IMG_DIR=f'{model.__class__.__name__}')
 
 ######################################################
 # test loop

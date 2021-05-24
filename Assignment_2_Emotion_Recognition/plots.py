@@ -17,12 +17,13 @@ def plot_train_val(epochs, loss_train, loss_val, metric, IMG_DIR):
     ax.set_ylabel(str(metric))
     ax.set_xticks(epochs)
     handles, labels = ax.get_legend_handles_labels()
-    plt.legend(handles=[h for h in handles if handles.index(h) != 0])  # remove subtitle for hue entries from legend
+    # plt.legend(handles=[h for h in handles if handles.index(h) != 0])  # remove subtitle for hue entries from legend
+    plt.legend(handles=[h for h in handles if h._label != "hue"])  # remove subtitle for hue entries from legend
     if metric == "Cross Entropy":
         name = "ce"
     else:
         name = "acc"
-        ax.set_yticks(np.linspace(0, 1, 11))
+        ax.set_yticks(np.linspace(0, 100, 11))
     plt.savefig(f"{IMG_DIR}_{name}_plot.png")
     plt.show()
 
