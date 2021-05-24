@@ -183,13 +183,8 @@ with torch.no_grad():
         test_correct += (predicted == y_test).sum().item()
 
         if plot:
-            for i in range(8):
-                img = torch.from_numpy(np.expand_dims(x_test[i], axis=0)).float()
-                plt.subplot(2, 4, i + 1)
-                plt.axis("off")
-                plt.imshow(x_test[i].flatten().reshape(48, 48), cmap='gray')
-                plt.title(classes[predicted[i].item()] + ' (' + classes[y_test[i].item()] +')')
-            plt.show()
+            plots.plot_predictions(x_test, y_test, predicted, classes, device,
+                                   filename=f'./img/{model.__class__.__name__}_predictions.png')
             plot = False
     print('Test Accuracy: {}%'.format(100 * test_correct / test_total))
 
@@ -202,7 +197,8 @@ print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (mac
 
 # plot confusion matrix
 cf_matrix = confusion_matrix(y_test.cpu(), predicted.cpu())
-plots.print_confusion_matrix(cf_matrix, class_names=[classes[c] for c in np.unique(y_test.cpu())])
+fig = plots.print_confusion_matrix(cf_matrix, class_names=[classes[c] for c in np.unique(y_test.cpu())],
+                                   filename=f'./img/{model.__class__.__name__}_cf_matrix.png')
 
 ######################################################
 # visualization of feature maps for single image
