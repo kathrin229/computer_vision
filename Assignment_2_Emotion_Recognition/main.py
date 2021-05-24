@@ -7,8 +7,8 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import dataset
 from models import Conv1DNet, Conv2DNet
-from sklearn.metrics import precision_recall_fscore_support
-import seaborn as sns
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+import plots
 
 # TODO check seed - reproducibility
 torch.seed()
@@ -38,6 +38,15 @@ model_args = {
 
 DATA_DIR = "./data/"
 dataset_path = os.path.join(DATA_DIR, 'data.npy')
+classes = {
+    0: 'Angry',
+    1: 'Disgust',
+    2: 'Fear',
+    3: 'Happy',
+    4: 'Sad',
+    5: 'Surprise',
+    6: 'Neutral'
+}
 
 data = dataset.load_data(src='data/fer2013/fer2013/fer2013.csv', dest=dataset_path)
 train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_size, architecture=architecture,
@@ -143,33 +152,9 @@ for epoch in range(num_epochs):
         model.load_state_dict(weights)
         break
 
-
-def plot_train_val(epochs, loss_train, loss_val, metric, IMG_DIR):
-    sns.set_style("darkgrid")
-    epochs_twice = np.tile(epochs, 2)
-    hue_train = ['training' for l in loss_train]
-    hue_val = ['validation' for v in loss_val]
-    hue = hue_train + hue_val
-    loss = loss_train + loss_val
-    df = pd.DataFrame({'loss': loss, 'epochs': epochs_twice, 'hue': hue})
-    ax = sns.lineplot(x='epochs', y='loss', hue='hue', data=df)
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel(str(metric))
-    ax.set_xticks(epochs)
-    handles, labels = ax.get_legend_handles_labels()
-    plt.legend(handles=[h for h in handles if handles.index(h) != 0])  # remove subtitle for hue entries from legend
-    if metric == "Cross Entropy":
-        name = "ce"
-    else:
-        name = "acc"
-        ax.set_yticks(np.linspace(0, 1, 11))
-    plt.savefig(f"{IMG_DIR}_{name}_plot.png")
-    plt.show()
-
-
 # plotting training and validation loss
-plot_train_val(np.linspace(1, num_epochs, num_epochs).astype(int), train_loss_all, valid_loss_all,
-               metric="Cross Entropy", IMG_DIR=f'./img/{model.__class__.__name__}')
+plots.plot_train_val(np.linspace(1, num_epochs, num_epochs).astype(int), train_loss_all, valid_loss_all,
+                     metric="Cross Entropy", IMG_DIR=f'./img/{model.__class__.__name__}')
 
 ######################################################
 # test loop
@@ -199,8 +184,12 @@ test_loss /= len(test_loader)
 accuracy = test_correct / len(test_loader)
 print(f'Test loss: {loss_test}.. Test Accuracy: {accuracy}')
 
-precision, recall, fscore, support = precision_recall_fscore_support(y_valid, predicted, average='macro')
+precision, recall, fscore, support = precision_recall_fscore_support(y_test, predicted, average='macro')
 print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (macro): {fscore}')
+
+# plot confusion matrix
+cf_matrix = confusion_matrix(y_test, predicted)
+plots.print_confusion_matrix(cf_matrix, class_names=[classes[c] for c in np.unique(y_test)])
 
 ######################################################
 # visualization of feature maps for single image
