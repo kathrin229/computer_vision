@@ -10,9 +10,6 @@ from models import Conv1DNet1Layer, Conv1DNet2Layer, Conv2DNet1Layer, Conv2DNet2
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 import plots
 
-# TODO check seed - reproducibility
-torch.seed()
-torch.manual_seed(0)
 
 architecture = Conv2DNet2Layer
 num_epochs = 3
@@ -99,6 +96,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 print(model)
 print("\n")
+
+# set seed for reproducibility
+torch.seed()
+torch.manual_seed(0)
 
 min_valid_loss = np.inf
 stopping = 0
@@ -197,11 +198,9 @@ print("Test model...")
 # set the model to eval mode
 model.eval()
 # turn off gradients for validation
-plot = True
-# turn off gradients for validation
 with torch.no_grad():
     test_loss, test_correct, test_total = 0, 0, 0
-    for batch in test_loader:
+    for i, batch in enumerate(test_loader):
         x_test = batch[0].to(device)
         y_test = batch[1].to(device)
         # forward pass
@@ -214,16 +213,11 @@ with torch.no_grad():
         predicted = torch.argmax(y_pred, 1)
         test_total += y_test.size(0)
         test_correct += (predicted == y_test).sum().item()
+        if i == 0:
+            # plot predictions for first 8 images in first batch
+            plots.plot_predictions(x_test, y_test, predicted, classes, device,
+                                   filename=f'./img/{model.__class__.__name__}_predictions.png')
 
-        if plot:
-            for i in range(8):
-                img = torch.from_numpy(np.expand_dims(x_test[i], axis=0)).float()
-                plt.subplot(2, 4, i + 1)
-                plt.axis("off")
-                plt.imshow(x_test[i].flatten().reshape(48, 48), cmap='gray')
-                plt.title(classes[predicted[i].item()] + ' (' + classes[y_test[i].item()] +')')
-            plt.show()
-            plot = False
     print('Test Accuracy: {}%'.format(100 * test_correct / test_total))
 
 test_loss /= len(test_loader)
@@ -235,7 +229,8 @@ print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (mac
 
 # plot confusion matrix
 cf_matrix = confusion_matrix(y_test.cpu(), predicted.cpu())
-plots.print_confusion_matrix(cf_matrix, class_names=[classes[c] for c in np.unique(y_test.cpu())])
+fig = plots.print_confusion_matrix(cf_matrix, class_names=[classes[c] for c in np.unique(y_test.cpu())],
+                                   filename=f'./img/{model.__class__.__name__}_cf_matrix.png')
 
 ######################################################
 # visualization of feature maps for single image

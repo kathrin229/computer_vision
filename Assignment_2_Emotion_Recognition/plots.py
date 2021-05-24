@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
+import torch
 
 
 def plot_train_val(epochs, loss_train, loss_val, metric, IMG_DIR):
@@ -27,7 +28,7 @@ def plot_train_val(epochs, loss_train, loss_val, metric, IMG_DIR):
     plt.show()
 
 
-def print_confusion_matrix(confusion_matrix, class_names, figsize=(10,7), fontsize=14):
+def print_confusion_matrix(confusion_matrix, class_names, figsize=(10,7), fontsize=14, filename=None):
     # reference: https://gist.github.com/shaypal5/94c53d765083101efc0240d776a23823
     """Prints a confusion matrix, as returned by sklearn.metrics.confusion_matrix, as a heatmap.
 
@@ -66,8 +67,19 @@ def print_confusion_matrix(confusion_matrix, class_names, figsize=(10,7), fontsi
     heatmap.xaxis.set_ticklabels(heatmap.xaxis.get_ticklabels(), rotation=45, ha='right', fontsize=fontsize)
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    plt.show
     # Note that due to returning the created figure object, when this funciton is called in a notebook
     # the figure will be printed twice. To prevent this, either append ; to your function call, or
     # modify the function by commenting out this return expression.
-    # return fig
+    plt.savefig(filename)
+    plt.show()
+
+
+def plot_predictions(x_test, y_test, predicted, classes, device, filename):
+    for i in range(8):
+        img = x_test[i].unsqueeze(0).type(torch.FloatTensor).to(device)
+        plt.subplot(2, 4, i + 1)
+        plt.axis("off")
+        plt.imshow(x_test[i].flatten().reshape(48, 48), cmap='gray')
+        plt.title(classes[predicted[i].item()] + ' (' + classes[y_test[i].item()] + ')')
+    plt.savefig(filename)
+    plt.show()
