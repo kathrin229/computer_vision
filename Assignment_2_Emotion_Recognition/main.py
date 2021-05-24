@@ -198,7 +198,7 @@ for epoch in range(num_epochs):
 # plotting training and validation loss
 plots.plot_train_val(np.linspace(1, epoch + 1, epoch + 1).astype(int),
                      train_loss_all, valid_loss_all,
-                     metric="Cross Entropy", IMG_DIR=f'./img/{model.__class__.__name__}')
+                     metric="Cross Entropy", IMG_DIR=f'{model.__class__.__name__}')
 
 ######################################################
 # test loop
