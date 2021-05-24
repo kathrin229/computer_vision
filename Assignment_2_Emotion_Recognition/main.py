@@ -6,13 +6,14 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import dataset
-from models import Conv1DNet1Layer, Conv1DNet2Layer, Conv2DNet1Layer, Conv2DNet2Layer, Conv2DNet3Layer, Conv2DNet4Layer, \
-    Conv2DNet5Layer, Conv2DNet6Layer, Conv2DNet7Layer, Conv2DNet8Layer, Conv2DNet9Layer, Conv2DNet10Layer
+from models import Conv1DNet1Layer, Conv1DNet2Layer, \
+                   Conv2DNet1Layer, Conv2DNet2Layer, Conv2DNet3Layer, Conv2DNet4Layer, Conv2DNet5Layer, \
+                   Conv2DNet6Layer, Conv2DNet7Layer, Conv2DNet8Layer, Conv2DNet9Layer, Conv2DNet10Layer
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 import plots
 
-architecture = Conv2DNet2Layer
-num_epochs = 2
+architecture = Conv1DNet1Layer
+num_epochs = 1
 learning_rate = 0.0001
 batch_size = 64
 patience = 15
@@ -189,7 +190,7 @@ for epoch in range(num_epochs):
           f'Training loss: {train_loss}.. Validation Loss: {valid_loss}.. '
           f'Training accuracy: {train_accuracy}.. Validation accuracy: {valid_accuracy}')
 
-    # # early stopping (based on validation accuracy)
+    # early stopping (based on validation accuracy)
     # if max_val_acc < valid_accuracy:
     #     max_val_acc = valid_accuracy
     #     weights = copy.deepcopy(model.state_dict())
