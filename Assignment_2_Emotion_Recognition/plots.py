@@ -66,7 +66,8 @@ def print_confusion_matrix(confusion_matrix, class_names, figsize=(10,7), fontsi
     heatmap.xaxis.set_ticklabels(heatmap.xaxis.get_ticklabels(), rotation=45, ha='right', fontsize=fontsize)
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+    plt.show
     # Note that due to returning the created figure object, when this funciton is called in a notebook
     # the figure will be printed twice. To prevent this, either append ; to your function call, or
     # modify the function by commenting out this return expression.
-    return fig
+    # return fig

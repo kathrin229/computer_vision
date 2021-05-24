@@ -153,7 +153,8 @@ for epoch in range(num_epochs):
         break
 
 # plotting training and validation loss
-plots.plot_train_val(np.linspace(1, num_epochs, num_epochs).astype(int), train_loss_all, valid_loss_all,
+plots.plot_train_val(np.linspace(1, epoch+1, epoch+1).astype(int),
+                     train_loss_all, valid_loss_all,
                      metric="Cross Entropy", IMG_DIR=f'./img/{model.__class__.__name__}')
 
 ######################################################
@@ -184,12 +185,12 @@ test_loss /= len(test_loader)
 accuracy = test_correct / len(test_loader)
 print(f'Test loss: {loss_test}.. Test Accuracy: {accuracy}')
 
-precision, recall, fscore, support = precision_recall_fscore_support(y_test, predicted, average='macro')
+precision, recall, fscore, support = precision_recall_fscore_support(y_test.cpu(), predicted.cpu(), average='macro')
 print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (macro): {fscore}')
 
 # plot confusion matrix
-cf_matrix = confusion_matrix(y_test, predicted)
-plots.print_confusion_matrix(cf_matrix, class_names=[classes[c] for c in np.unique(y_test)])
+cf_matrix = confusion_matrix(y_test.cpu(), predicted.cpu())
+plots.print_confusion_matrix(cf_matrix, class_names=[classes[c] for c in np.unique(y_test.cpu())])
 
 ######################################################
 # visualization of feature maps for single image
