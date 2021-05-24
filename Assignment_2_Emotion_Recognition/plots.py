@@ -73,7 +73,7 @@ def print_confusion_matrix(confusion_matrix, class_names, figsize=(10,7), fontsi
     plt.show()
 
 
-def plot_predictions(x_test, y_test, predicted, classes, filename, fontsize=20):
+def plot_predictions(x_test, y_test, predicted, classes, filename, fontsize):
     plt.figure(figsize=(20, 10))
     for i in range(8):
         plt.subplot(2, 4, i + 1)
