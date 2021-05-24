@@ -100,7 +100,8 @@ else:
     print('Failed to find GPU. Will use CPU.\n')
     device = 'cpu'
 
-model = architecture(**model_args).to(device)
+# model = architecture(**model_args).to(device)
+model = architecture().to(device)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -317,3 +318,6 @@ for num_layer in range(len(outputs)):
     plt.savefig(IMG_DIR + model.__class__.__name__ + "_layer%s_feature_maps.png" % str(num_layer + 1))
     plt.show()
     plt.close()
+
+print("train_loss,          valid_loss,         train_accuracy,    valid_accuracy,     accuracy,          precision,          recall,             fscore")
+print(train_loss, valid_loss, train_accuracy, valid_accuracy, accuracy, precision, recall, fscore)
