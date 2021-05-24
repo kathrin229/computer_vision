@@ -173,10 +173,10 @@ for epoch in range(num_epochs):
     valid_loss_all.append(sum(valid_epoch_loss) / len(valid_epoch_loss))
 
     # print epoch results
-    train_loss /= len(train_loader)
-    valid_loss /= len(valid_loader)
-    train_accuracy = train_correct / len(train_loader)
-    valid_accuracy = valid_correct / len(valid_loader)
+    train_loss /= train_total  # len(train_loader)
+    valid_loss /= valid_total  # len(valid_loader)
+    train_accuracy = train_correct / train_total  # len(train_loader)
+    valid_accuracy = valid_correct / valid_total  # len(valid_loader)
     print(f'Epoch: {epoch + 1}/{num_epochs}.. '
           f'Training loss: {train_loss}.. Validation Loss: {valid_loss}.. '
           f'Training accuracy: {train_accuracy}.. Validation accuracy: {valid_accuracy}')
@@ -227,11 +227,9 @@ with torch.no_grad():
             plots.plot_predictions(x_test.cpu(), y_test.cpu(), predicted.cpu(), classes, 10, # fontsize=12,
                                    filename=IMG_DIR + f'{model.__class__.__name__}_predictions.png')
 
-    print('Test Accuracy: {}%'.format(100 * test_correct / test_total))
-
-test_loss /= len(test_loader)
-accuracy = test_correct / len(test_loader)
-print(f'Test loss: {loss_test}.. Test Accuracy: {accuracy}')
+test_loss /= test_total  # len(test_loader)
+accuracy = test_correct / test_total  # test_correct / len(test_loader)
+print(f'Test loss: {loss_test}.. Test accuracy: {accuracy}')
 
 precision, recall, fscore, support = precision_recall_fscore_support(y_test.cpu(), predicted.cpu(), average='macro')
 print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (macro): {fscore}')
