@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 import copy
 import torch
 import torch.nn as nn
@@ -7,14 +8,14 @@ import matplotlib.pyplot as plt
 import dataset
 from models import Conv1DNet, Conv2DNet
 from sklearn.metrics import precision_recall_fscore_support
-
+import seaborn as sns
 
 # TODO check seed - reproducibility
 torch.seed()
 torch.manual_seed(0)
 
 architecture = Conv2DNet
-num_epochs = 1
+num_epochs = 3
 learning_rate = 0.0001
 batch_size = 64
 patience = 15
@@ -31,7 +32,7 @@ model_args = {
     'stride_layer2': 2,
     'padding_layer2': 2,
 
-    'channel_linear': 3*3*64,
+    'channel_linear': 3 * 3 * 64,
     'num_classes': 7
 }
 
@@ -60,10 +61,13 @@ print("\n")
 min_valid_loss = np.inf
 stopping = 0
 max_val_acc = 0
+train_loss_all = []
+valid_loss_all = []
 
 print("Fit model...")
 for epoch in range(num_epochs):
     train_loss, train_correct, train_total = 0, 0, 0
+    train_epoch_loss = []
     ######################################################
     # training loop (iterates over training batches)
     ######################################################
@@ -82,10 +86,13 @@ for epoch in range(num_epochs):
         optimizer.step()
         # accumulate the training loss
         train_loss += loss_train.item()
+        train_epoch_loss.append(loss_train.item())
         # calculate the accuracy
         predicted = torch.argmax(y_pred, 1)
         train_total += y_train.size(0)
         train_correct += (predicted == y_train).sum().item()
+
+    train_loss_all.append(sum(train_epoch_loss) / len(train_epoch_loss))
 
     ######################################################
     # validation loop
@@ -93,6 +100,7 @@ for epoch in range(num_epochs):
     # set the model to eval mode
     model.eval()
     valid_loss, valid_correct, valid_total = 0, 0, 0
+    valid_epoch_loss = []
     # turn off gradients for validation
     with torch.no_grad():
         for batch in valid_loader:
@@ -104,18 +112,21 @@ for epoch in range(num_epochs):
             loss_valid = loss(y_pred, y_valid)
             # accumulate the validation loss
             valid_loss += loss_valid.item()
+            valid_epoch_loss.append(loss_valid.item())
             # calculate the accuracy
             predicted = torch.argmax(y_pred, 1)
             valid_total += y_valid.size(0)
             valid_correct += (predicted == y_valid).sum().item()
+
+    valid_loss_all.append(sum(valid_epoch_loss) / len(valid_epoch_loss))
 
     # print epoch results
     train_loss /= len(train_loader)
     valid_loss /= len(valid_loader)
     train_accuracy = train_correct / len(train_loader)
     valid_accuracy = valid_correct / len(valid_loader)
-    print(f'Epoch: {epoch+1}/{num_epochs}.. '
-          f'Training loss: {train_loss}.. Validation Loss: {valid_loss}'
+    print(f'Epoch: {epoch + 1}/{num_epochs}.. '
+          f'Training loss: {train_loss}.. Validation Loss: {valid_loss}.. '
           f'Training accuracy: {train_accuracy}.. Validation accuracy: {valid_accuracy}')
 
     # early stopping
@@ -131,6 +142,34 @@ for epoch in range(num_epochs):
         print('Restoring best weights')
         model.load_state_dict(weights)
         break
+
+
+def plot_train_val(epochs, loss_train, loss_val, metric, IMG_DIR):
+    sns.set_style("darkgrid")
+    epochs_twice = np.tile(epochs, 2)
+    hue_train = ['training' for l in loss_train]
+    hue_val = ['validation' for v in loss_val]
+    hue = hue_train + hue_val
+    loss = loss_train + loss_val
+    df = pd.DataFrame({'loss': loss, 'epochs': epochs_twice, 'hue': hue})
+    ax = sns.lineplot(x='epochs', y='loss', hue='hue', data=df)
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel(str(metric))
+    ax.set_xticks(epochs)
+    handles, labels = ax.get_legend_handles_labels()
+    plt.legend(handles=[h for h in handles if handles.index(h) != 0])  # remove subtitle for hue entries from legend
+    if metric == "Cross Entropy":
+        name = "ce"
+    else:
+        name = "acc"
+        ax.set_yticks(np.linspace(0, 1, 11))
+    plt.savefig(f"{IMG_DIR}_{name}_plot.png")
+    plt.show()
+
+
+# plotting training and validation loss
+plot_train_val(np.linspace(1, num_epochs, num_epochs).astype(int), train_loss_all, valid_loss_all,
+               metric="Cross Entropy", IMG_DIR=f'./img/{model.__class__.__name__}')
 
 ######################################################
 # test loop
@@ -163,13 +202,14 @@ print(f'Test loss: {loss_test}.. Test Accuracy: {accuracy}')
 precision, recall, fscore, support = precision_recall_fscore_support(y_valid, predicted, average='macro')
 print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (macro): {fscore}')
 
-
 ######################################################
 # visualization of feature maps for single image
 ######################################################
 # reference: https://androidkt.com/how-to-visualize-feature-maps-in-convolutional-neural-networks-using-pytorch/
 
-img = torch.from_numpy(np.expand_dims(x_train[0], axis=0)).float()
+IMG_DIR = "./img/"
+
+img = x_train[0].unsqueeze(0).type(torch.FloatTensor).to(device)
 
 # accessing convolutional layers
 num_layers = 0
@@ -193,7 +233,7 @@ for i in range(1, len(conv_layers)):
 outputs = results
 
 # plot image
-plt.imshow(x_train[0].flatten().reshape(48, 48), cmap='gray')
+plt.imshow(x_train[0].cpu().flatten().reshape(48, 48), cmap='gray')
 plt.show()
 
 # visualize feature maps of network
@@ -207,12 +247,12 @@ for num_layer in range(len(outputs)):
         if i == 16:
             break
         plt.subplot(2, 8, i + 1)
-        plt.imshow(conv_filter, cmap='gray')
+        plt.imshow(conv_filter.cpu(), cmap='gray')
         plt.axis("off")
         st = fig.suptitle(title, fontsize=50)
         # shift subplots down:
         st.set_y(0.95)
         fig.subplots_adjust(top=0.85)
-    plt.savefig("img/layer%s_feature_maps.png" % str(num_layer + 1))
+    plt.savefig(IMG_DIR + model.__class__.__name__ + "_layer%s_feature_maps.png" % str(num_layer + 1))
     plt.show()
     plt.close()
