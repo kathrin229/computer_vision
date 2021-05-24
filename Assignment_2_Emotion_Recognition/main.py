@@ -225,7 +225,7 @@ with torch.no_grad():
         if i == 0:
             # plot predictions for first 8 images in first batch
             plots.plot_predictions(x_test.cpu(), y_test.cpu(), predicted.cpu(), classes,
-                                   filename=IMG_DIR + f'{model.__class__.__name__}_predictions.png')
+                                   filename=IMG_DIR + f'{model.__class__.__name__}_predictions.png', fontsize=12)
 
     print('Test Accuracy: {}%'.format(100 * test_correct / test_total))
 
