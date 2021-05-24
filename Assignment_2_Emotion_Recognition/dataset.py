@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import TensorDataset, DataLoader
-from models import Conv1DNet, Conv2DNet
+from models import Conv1DNet1Layer, Conv1DNet2Layer, Conv2DNet1Layer, Conv2DNet2Layer, Conv2DNet3Layer, Conv2DNet4Layer, Conv2DNet5Layer, Conv2DNet6Layer, Conv2DNet7Layer, Conv2DNet8Layer, Conv2DNet9Layer, Conv2DNet10Layer
 
 def load_data(src, dest):
     print('Load data...')
@@ -50,7 +50,7 @@ def preprocess_data(data, architecture):
     x_valid = x_valid.reshape(x_valid.shape[0], x_valid.shape[2], x_valid.shape[1])
     y_valid = torch.from_numpy(valid[:, 0, :].flatten()).type(torch.LongTensor)
 
-    if architecture == Conv2DNet:
+    if architecture.__name__.startswith("Conv2D"):
 
         # reshape 3-dim input to 4-dim input
         x_train = x_train.reshape(x_train.shape[0], x_train.shape[1],
