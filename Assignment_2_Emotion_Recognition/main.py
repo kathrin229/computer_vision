@@ -164,11 +164,9 @@ print("Test model...")
 # set the model to eval mode
 model.eval()
 # turn off gradients for validation
-plot = True
-# turn off gradients for validation
 with torch.no_grad():
     test_loss, test_correct, test_total = 0, 0, 0
-    for batch in test_loader:
+    for i, batch in enumerate(test_loader):
         x_test = batch[0].to(device)
         y_test = batch[1].to(device)
         # forward pass
@@ -181,11 +179,11 @@ with torch.no_grad():
         predicted = torch.argmax(y_pred, 1)
         test_total += y_test.size(0)
         test_correct += (predicted == y_test).sum().item()
-
-        if plot:
+        if i == 0:
+            # plot predictions for first 8 images in first batch
             plots.plot_predictions(x_test, y_test, predicted, classes, device,
                                    filename=f'./img/{model.__class__.__name__}_predictions.png')
-            plot = False
+
     print('Test Accuracy: {}%'.format(100 * test_correct / test_total))
 
 test_loss /= len(test_loader)
