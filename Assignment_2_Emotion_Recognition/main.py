@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import copy
 import torch
@@ -34,8 +35,10 @@ model_args = {
     'num_classes': 7
 }
 
+DATA_DIR = "./data/"
+dataset_path = os.path.join(DATA_DIR, 'data.npy')
 
-data = dataset.load_data()
+data = dataset.load_data(src='data/fer2013/fer2013/fer2013.csv', dest=dataset_path)
 train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_size, architecture=architecture,
                                                                   shuffle=True, drop_last=True)
 print("Finished loading data.\n")

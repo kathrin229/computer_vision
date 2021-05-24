@@ -5,13 +5,12 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 from models import Conv1DNet, Conv2DNet
 
-def load_data():
+def load_data(src, dest):
     print('Load data...')
-    DATA_DIR = "./data/"
-    dataset_path = os.path.join(DATA_DIR, 'data.npy')
+    dataset_path = dest
     if not os.path.exists(dataset_path):
 
-        data_cv = pd.read_csv('data/fer2013/fer2013/fer2013.csv').to_numpy()
+        data_cv = pd.read_csv(src).to_numpy()
         print(data_cv.shape)
 
         # convert "Training", "PrivateTest", "PublicTest" to ints
