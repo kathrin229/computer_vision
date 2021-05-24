@@ -12,7 +12,7 @@ from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 import plots
 
 architecture = Conv2DNet2Layer
-num_epochs = 3
+num_epochs = 2
 learning_rate = 0.0001
 batch_size = 64
 patience = 15
@@ -73,8 +73,10 @@ model_args = {
     'num_classes': 7
 }
 
+IMG_DIR = "./img/"
 DATA_DIR = "./data/"
 dataset_path = os.path.join(DATA_DIR, 'data.npy')
+
 classes = {
     0: 'Angry',
     1: 'Disgust',
@@ -222,8 +224,8 @@ with torch.no_grad():
         test_correct += (predicted == y_test).sum().item()
         if i == 0:
             # plot predictions for first 8 images in first batch
-            plots.plot_predictions(x_test, y_test, predicted, classes, device,
-                                   filename=f'./img/{model.__class__.__name__}_predictions.png')
+            plots.plot_predictions(x_test.cpu(), y_test.cpu(), predicted.cpu(), classes,
+                                   filename=IMG_DIR + f'{model.__class__.__name__}_predictions.png')
 
     print('Test Accuracy: {}%'.format(100 * test_correct / test_total))
 
@@ -237,14 +239,12 @@ print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (mac
 # plot confusion matrix
 cf_matrix = confusion_matrix(y_test.cpu(), predicted.cpu())
 fig = plots.print_confusion_matrix(cf_matrix, class_names=[classes[c] for c in np.unique(y_test.cpu())],
-                                   filename=f'./img/{model.__class__.__name__}_cf_matrix.png')
+                                   filename=IMG_DIR + f'{model.__class__.__name__}_cf_matrix.png')
 
 ######################################################
 # visualization of feature maps for single image
 ######################################################
 # reference: https://androidkt.com/how-to-visualize-feature-maps-in-convolutional-neural-networks-using-pytorch/
-
-IMG_DIR = "./img/"
 
 img = x_train[0].unsqueeze(0).type(torch.FloatTensor).to(device)
 

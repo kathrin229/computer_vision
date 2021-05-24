@@ -74,10 +74,11 @@ def print_confusion_matrix(confusion_matrix, class_names, figsize=(10,7), fontsi
 
 
 def plot_predictions(x_test, y_test, predicted, classes, filename):
+    plt.figure(figsize=(20, 10))
     for i in range(8):
         plt.subplot(2, 4, i + 1)
         plt.axis("off")
         plt.imshow(x_test[i].flatten().reshape(48, 48), cmap='gray')
-        plt.title(classes[predicted[i].item()] + ' (' + classes[y_test[i].item()] + ')')
+        plt.title(classes[predicted[i].item()] + ' (' + classes[y_test[i].item()] + ')', fontsize=20)
     plt.savefig(filename)
     plt.show()
