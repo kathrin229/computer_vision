@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import dataset
-from models import Conv1DNet, Conv2DNet
+from models import Conv1DNet1Layer, Conv1DNet2Layer, Conv2DNet1Layer, Conv2DNet2Layer, Conv2DNet3Layer, Conv2DNet4Layer, Conv2DNet5Layer, Conv2DNet6Layer, Conv2DNet7Layer, Conv2DNet8Layer, Conv2DNet9Layer, Conv2DNet10Layer
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 import plots
 
@@ -14,7 +14,7 @@ import plots
 torch.seed()
 torch.manual_seed(0)
 
-architecture = Conv2DNet
+architecture = Conv2DNet2Layer
 num_epochs = 3
 learning_rate = 0.0001
 batch_size = 64
@@ -31,6 +31,39 @@ model_args = {
     'kernel_layer2': 5,
     'stride_layer2': 2,
     'padding_layer2': 2,
+
+    'channel_layer3':0,
+    'kernel_layer3':0,
+    'stride_layer3':0,
+    'padding_layer3':0,
+    'channel_layer4':0,
+    'kernel_layer4':0,
+    'stride_layer4':0,
+    'padding_layer4':0,
+    'channel_layer5':0,
+    'kernel_layer5':0,
+    'stride_layer5':0,
+    'padding_layer5':0,
+    'channel_layer6':0,
+    'kernel_layer6':0,
+    'stride_layer6':0,
+    'padding_layer6':0,
+    'channel_layer7':0,
+    'kernel_layer7':0,
+    'stride_layer7':0,
+    'padding_layer7':0,
+    'channel_layer8':0,
+    'kernel_layer8':0,
+    'stride_layer8':0,
+    'padding_layer8':0,
+    'channel_layer9':0,
+    'kernel_layer9':0,
+    'stride_layer9':0,
+    'padding_layer9':0,
+    'channel_layer10':0,
+    'kernel_layer10':0,
+    'stride_layer10':0,
+    'padding_layer10':0,
 
     'channel_linear': 3 * 3 * 64,
     'num_classes': 7
