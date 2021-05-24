@@ -34,6 +34,16 @@ model_args = {
     'num_classes': 7
 }
 
+emotion_dict = {
+    0: 'angry',
+    1: 'disgust',
+    2: 'fear',
+    3: 'happy',
+    4: 'sad',
+    5: 'surprise',
+    6: 'neutral',
+}
+
 
 data = dataset.load_data()
 train_loader, valid_loader, test_loader = dataset.get_data_loader(data, batch_size, architecture=architecture,
@@ -135,6 +145,7 @@ for epoch in range(num_epochs):
 print("Test model...")
 # set the model to eval mode
 model.eval()
+plot = True
 # turn off gradients for validation
 with torch.no_grad():
     test_loss, test_correct, test_total = 0, 0, 0
@@ -151,6 +162,18 @@ with torch.no_grad():
         predicted = torch.argmax(y_pred, 1)
         test_total += y_test.size(0)
         test_correct += (predicted == y_test).sum().item()
+
+        if plot:
+            for i in range(8):
+                img = torch.from_numpy(np.expand_dims(x_test[i], axis=0)).float()
+                plt.subplot(2, 4, i + 1)
+                plt.axis("off")
+                plt.imshow(x_test[i].flatten().reshape(48, 48), cmap='gray')
+                plt.title(emotion_dict[predicted[i].item()] + ' (' + emotion_dict[y_test[i].item()] +')')
+                # plt.suptitle("a")# y_test[i].item())
+            plt.show()
+            plot = False
+
     print('Test Accuracy: {}%'.format(100 * test_correct / test_total))
 
 test_loss /= len(test_loader)
@@ -166,7 +189,8 @@ print(f'Precision (macro): {precision}.. Recall (macro): {recall}.. F-score (mac
 ######################################################
 # reference: https://androidkt.com/how-to-visualize-feature-maps-in-convolutional-neural-networks-using-pytorch/
 
-img = torch.from_numpy(np.expand_dims(x_train[0], axis=0)).float()
+# img = torch.from_numpy(np.expand_dims(x_train[0], axis=0)).float()
+img = torch.from_numpy(np.expand_dims(x_test[0], axis=0)).float()
 
 # accessing convolutional layers
 num_layers = 0
@@ -190,7 +214,8 @@ for i in range(1, len(conv_layers)):
 outputs = results
 
 # plot image
-plt.imshow(x_train[0].flatten().reshape(48, 48), cmap='gray')
+# plt.imshow(x_train[0].flatten().reshape(48, 48), cmap='gray')
+plt.imshow(x_test[0].flatten().reshape(48, 48), cmap='gray')
 plt.show()
 
 # visualize feature maps of network
