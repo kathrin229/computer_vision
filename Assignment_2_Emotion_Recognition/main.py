@@ -10,9 +10,6 @@ from models import Conv1DNet, Conv2DNet
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 import plots
 
-# TODO check seed - reproducibility
-torch.seed()
-torch.manual_seed(0)
 
 architecture = Conv2DNet
 num_epochs = 3
@@ -66,6 +63,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 print(model)
 print("\n")
+
+# set seed for reproducibility
+torch.seed()
+torch.manual_seed(0)
 
 min_valid_loss = np.inf
 stopping = 0
