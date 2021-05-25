@@ -20,7 +20,9 @@ class Conv1DNet1Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(24*24*channel_layer1, channel_linear),
-            nn.Linear(channel_linear, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_linear, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -56,7 +58,9 @@ class Conv1DNet2Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer2),
-            nn.Linear(channel_layer2, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer2, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -85,7 +89,9 @@ class Conv2DNet1Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer1),
-            nn.Linear(channel_layer1, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer1, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -120,7 +126,9 @@ class Conv2DNet2Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer2),
-            nn.Linear(channel_layer2, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer2, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -161,7 +169,9 @@ class Conv2DNet3Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer3),
-            nn.Linear(channel_layer3, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer3, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -209,7 +219,9 @@ class Conv2DNet4Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer4),
-            nn.Linear(channel_layer4, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer4, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -262,7 +274,9 @@ class Conv2DNet5Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer5),
-            nn.Linear(channel_layer5, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer5, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -328,7 +342,9 @@ class Conv2DNet6Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer6),
-            nn.Linear(channel_layer6, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer6, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -399,7 +415,9 @@ class Conv2DNet7Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer7),
-            nn.Linear(channel_layer7, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer7, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -477,7 +495,9 @@ class Conv2DNet8Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer8),
-            nn.Linear(channel_layer8, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer8, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -558,7 +578,9 @@ class Conv2DNet9Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer9),
-            nn.Linear(channel_layer9, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer9, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
@@ -644,7 +666,9 @@ class Conv2DNet10Layer(nn.Module):
 
         self.linear_layers = nn.Sequential(
             nn.Linear(channel_linear, channel_layer10),
-            nn.Linear(channel_layer10, num_classes)
+            nn.ReLU(inplace=True),
+            nn.Linear(channel_layer10, num_classes),
+            nn.LogSoftmax(dim=1),
         )
 
     # Defining the forward pass
