@@ -1,6 +1,8 @@
 import torch.nn as nn
 
-
+######################################################
+# defining Conv1D Models with 1 and 2 Layers
+######################################################
 class Conv1DNet1Layer(nn.Module):
     def __init__(self, input_channel=1,
                  channel_layer1=32, kernel_layer1=5, stride_layer1=2, padding_layer1=2,
@@ -71,6 +73,9 @@ class Conv1DNet2Layer(nn.Module):
         return x
 
 
+#####################################################################
+# defining Conv2D Models with 1, 2, 3, 4, 5, 6, 7, 8, 9 and 10 Layers
+#####################################################################
 class Conv2DNet1Layer(nn.Module):
     def __init__(self, input_channel=1,
                  channel_layer1=16, kernel_layer1=5, stride_layer1=2, padding_layer1=2,
@@ -286,20 +291,16 @@ class Conv2DNet5Layer(nn.Module):
         x = self.linear_layers(x)
         return x
 
-# TODO
+
 class Conv2DNet6Layer(nn.Module):
-    def __init__(self, input_channel,
-                 channel_layer1, kernel_layer1, stride_layer1, padding_layer1,
-                 channel_layer2, kernel_layer2, stride_layer2, padding_layer2,
-                 channel_layer3, kernel_layer3, stride_layer3, padding_layer3,
-                 channel_layer4, kernel_layer4, stride_layer4, padding_layer4,
-                 channel_layer5, kernel_layer5, stride_layer5, padding_layer5,
-                 channel_layer6, kernel_layer6, stride_layer6, padding_layer6,
-                 channel_layer7, kernel_layer7, stride_layer7, padding_layer7,
-                 channel_layer8, kernel_layer8, stride_layer8, padding_layer8,
-                 channel_layer9, kernel_layer9, stride_layer9, padding_layer9,
-                 channel_layer10, kernel_layer10, stride_layer10, padding_layer10,
-                 channel_linear, num_classes
+    def __init__(self, input_channel=1,
+                 channel_layer1=256, kernel_layer1=3, stride_layer1=1, padding_layer1=1,
+                 channel_layer2=256, kernel_layer2=3, stride_layer2=1, padding_layer2=1,
+                 channel_layer3=128, kernel_layer3=3, stride_layer3=1, padding_layer3=1,
+                 channel_layer4=128, kernel_layer4=3, stride_layer4=1, padding_layer4=1,
+                 channel_layer5=64, kernel_layer5=3, stride_layer5=1, padding_layer5=1,
+                 channel_layer6=64, kernel_layer6=3, stride_layer6=1, padding_layer6=1,
+                 channel_linear=6*6*64, num_classes=7
                  ):
         super(Conv2DNet6Layer, self).__init__()
 
@@ -354,20 +355,17 @@ class Conv2DNet6Layer(nn.Module):
         x = self.linear_layers(x)
         return x
 
-# TODO
+
 class Conv2DNet7Layer(nn.Module):
     def __init__(self, input_channel,
-                 channel_layer1, kernel_layer1, stride_layer1, padding_layer1,
-                 channel_layer2, kernel_layer2, stride_layer2, padding_layer2,
-                 channel_layer3, kernel_layer3, stride_layer3, padding_layer3,
-                 channel_layer4, kernel_layer4, stride_layer4, padding_layer4,
-                 channel_layer5, kernel_layer5, stride_layer5, padding_layer5,
-                 channel_layer6, kernel_layer6, stride_layer6, padding_layer6,
-                 channel_layer7, kernel_layer7, stride_layer7, padding_layer7,
-                 channel_layer8, kernel_layer8, stride_layer8, padding_layer8,
-                 channel_layer9, kernel_layer9, stride_layer9, padding_layer9,
-                 channel_layer10, kernel_layer10, stride_layer10, padding_layer10,
-                 channel_linear, num_classes
+                 channel_layer1=256, kernel_layer1=3, stride_layer1=1, padding_layer1=1,
+                 channel_layer2=256, kernel_layer2=3, stride_layer2=1, padding_layer2=1,
+                 channel_layer3=128, kernel_layer3=3, stride_layer3=1, padding_layer3=1,
+                 channel_layer4=128, kernel_layer4=3, stride_layer4=1, padding_layer4=1,
+                 channel_layer5=64, kernel_layer5=3, stride_layer5=1, padding_layer5=1,
+                 channel_layer6=64, kernel_layer6=3, stride_layer6=1, padding_layer6=1,
+                 channel_layer7=32, kernel_layer7=3, stride_layer7=1, padding_layer7=1,
+                 channel_linear=6*6*32, num_classes=7
                  ):
         super(Conv2DNet7Layer, self).__init__()
 
@@ -427,20 +425,18 @@ class Conv2DNet7Layer(nn.Module):
         x = self.linear_layers(x)
         return x
 
-# TODO
+
 class Conv2DNet8Layer(nn.Module):
     def __init__(self, input_channel,
-                 channel_layer1, kernel_layer1, stride_layer1, padding_layer1,
-                 channel_layer2, kernel_layer2, stride_layer2, padding_layer2,
-                 channel_layer3, kernel_layer3, stride_layer3, padding_layer3,
-                 channel_layer4, kernel_layer4, stride_layer4, padding_layer4,
-                 channel_layer5, kernel_layer5, stride_layer5, padding_layer5,
-                 channel_layer6, kernel_layer6, stride_layer6, padding_layer6,
-                 channel_layer7, kernel_layer7, stride_layer7, padding_layer7,
-                 channel_layer8, kernel_layer8, stride_layer8, padding_layer8,
-                 channel_layer9, kernel_layer9, stride_layer9, padding_layer9,
-                 channel_layer10, kernel_layer10, stride_layer10, padding_layer10,
-                 channel_linear, num_classes
+                 channel_layer1=256, kernel_layer1=3, stride_layer1=1, padding_layer1=1,
+                 channel_layer2=256, kernel_layer2=3, stride_layer2=1, padding_layer2=1,
+                 channel_layer3=128, kernel_layer3=3, stride_layer3=1, padding_layer3=1,
+                 channel_layer4=128, kernel_layer4=3, stride_layer4=1, padding_layer4=1,
+                 channel_layer5=64, kernel_layer5=3, stride_layer5=1, padding_layer5=1,
+                 channel_layer6=64, kernel_layer6=3, stride_layer6=1, padding_layer6=1,
+                 channel_layer7=32, kernel_layer7=3, stride_layer7=1, padding_layer7=1,
+                 channel_layer8=32, kernel_layer8=3, stride_layer8=1, padding_layer8=1,
+                 channel_linear=3*3*32, num_classes=7
                  ):
         super(Conv2DNet8Layer, self).__init__()
 
@@ -507,20 +503,19 @@ class Conv2DNet8Layer(nn.Module):
         x = self.linear_layers(x)
         return x
 
-# TODO
+
 class Conv2DNet9Layer(nn.Module):
     def __init__(self, input_channel,
-                 channel_layer1, kernel_layer1, stride_layer1, padding_layer1,
-                 channel_layer2, kernel_layer2, stride_layer2, padding_layer2,
-                 channel_layer3, kernel_layer3, stride_layer3, padding_layer3,
-                 channel_layer4, kernel_layer4, stride_layer4, padding_layer4,
-                 channel_layer5, kernel_layer5, stride_layer5, padding_layer5,
-                 channel_layer6, kernel_layer6, stride_layer6, padding_layer6,
-                 channel_layer7, kernel_layer7, stride_layer7, padding_layer7,
-                 channel_layer8, kernel_layer8, stride_layer8, padding_layer8,
-                 channel_layer9, kernel_layer9, stride_layer9, padding_layer9,
-                 channel_layer10, kernel_layer10, stride_layer10, padding_layer10,
-                 channel_linear, num_classes
+                 channel_layer1=256, kernel_layer1=3, stride_layer1=1, padding_layer1=1,
+                 channel_layer2=256, kernel_layer2=3, stride_layer2=1, padding_layer2=1,
+                 channel_layer3=128, kernel_layer3=3, stride_layer3=1, padding_layer3=1,
+                 channel_layer4=128, kernel_layer4=3, stride_layer4=1, padding_layer4=1,
+                 channel_layer5=64, kernel_layer5=3, stride_layer5=1, padding_layer5=1,
+                 channel_layer6=64, kernel_layer6=3, stride_layer6=1, padding_layer6=1,
+                 channel_layer7=32, kernel_layer7=3, stride_layer7=1, padding_layer7=1,
+                 channel_layer8=32, kernel_layer8=3, stride_layer8=1, padding_layer8=1,
+                 channel_layer9=32, kernel_layer9=3, stride_layer9=1, padding_layer9=1,
+                 channel_linear=6*6*32, num_classes=7
                  ):
         super(Conv2DNet9Layer, self).__init__()
 
@@ -590,20 +585,20 @@ class Conv2DNet9Layer(nn.Module):
         x = self.linear_layers(x)
         return x
 
-# TODO
+
 class Conv2DNet10Layer(nn.Module):
     def __init__(self, input_channel,
-                 channel_layer1, kernel_layer1, stride_layer1, padding_layer1,
-                 channel_layer2, kernel_layer2, stride_layer2, padding_layer2,
-                 channel_layer3, kernel_layer3, stride_layer3, padding_layer3,
-                 channel_layer4, kernel_layer4, stride_layer4, padding_layer4,
-                 channel_layer5, kernel_layer5, stride_layer5, padding_layer5,
-                 channel_layer6, kernel_layer6, stride_layer6, padding_layer6,
-                 channel_layer7, kernel_layer7, stride_layer7, padding_layer7,
-                 channel_layer8, kernel_layer8, stride_layer8, padding_layer8,
-                 channel_layer9, kernel_layer9, stride_layer9, padding_layer9,
-                 channel_layer10, kernel_layer10, stride_layer10, padding_layer10,
-                 channel_linear, num_classes
+                 channel_layer1=256, kernel_layer1=3, stride_layer1=1, padding_layer1=1,
+                 channel_layer2=256, kernel_layer2=3, stride_layer2=1, padding_layer2=1,
+                 channel_layer3=128, kernel_layer3=3, stride_layer3=1, padding_layer3=1,
+                 channel_layer4=128, kernel_layer4=3, stride_layer4=1, padding_layer4=1,
+                 channel_layer5=64, kernel_layer5=3, stride_layer5=1, padding_layer5=1,
+                 channel_layer6=64, kernel_layer6=3, stride_layer6=1, padding_layer6=1,
+                 channel_layer7=32, kernel_layer7=3, stride_layer7=1, padding_layer7=1,
+                 channel_layer8=32, kernel_layer8=3, stride_layer8=1, padding_layer8=1,
+                 channel_layer9=32, kernel_layer9=3, stride_layer9=1, padding_layer9=1,
+                 channel_layer10=32, kernel_layer10=3, stride_layer10=1, padding_layer10=1,
+                 channel_linear=6*6*32, num_classes=7
                  ):
         super(Conv2DNet10Layer, self).__init__()
 

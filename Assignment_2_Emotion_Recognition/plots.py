@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 
 
+###############################################################################
+# Plot of training and validation loss
+###############################################################################
 def plot_train_val(epochs, loss_train, loss_val, metric, IMG_DIR):
     sns.set_style("darkgrid")
     epochs_twice = np.tile(epochs, 2)
@@ -17,7 +20,6 @@ def plot_train_val(epochs, loss_train, loss_val, metric, IMG_DIR):
     ax.set_ylabel(str(metric))
     ax.set_xticks(epochs)
     handles, labels = ax.get_legend_handles_labels()
-    # plt.legend(handles=[h for h in handles if handles.index(h) != 0])  # remove subtitle for hue entries from legend
     plt.legend(handles=[h for h in handles if h._label != "hue"])  # remove subtitle for hue entries from legend
     if metric == "Cross Entropy":
         name = "ce"
@@ -28,6 +30,9 @@ def plot_train_val(epochs, loss_train, loss_val, metric, IMG_DIR):
     plt.show()
 
 
+###############################################################################
+# Plot of confusion Matrix for the seven emotions
+###############################################################################
 def print_confusion_matrix(confusion_matrix, class_names, figsize=(10,7), fontsize=14, filename=None):
     # reference: https://gist.github.com/shaypal5/94c53d765083101efc0240d776a23823
     """Prints a confusion matrix, as returned by sklearn.metrics.confusion_matrix, as a heatmap.
@@ -74,6 +79,9 @@ def print_confusion_matrix(confusion_matrix, class_names, figsize=(10,7), fontsi
     plt.show()
 
 
+###############################################################################
+# Plot of some example predictions compared to real labels with image of person
+###############################################################################
 def plot_predictions(x_test, y_test, predicted, classes, fontsize, filename):
     plt.figure(figsize=(20, 10))
     for i in range(8):

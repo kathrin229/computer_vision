@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import pandas as pd
 import copy
 import torch
 import torch.nn as nn
@@ -12,67 +11,15 @@ from models import Conv1DNet1Layer, Conv1DNet2Layer, \
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 import plots
 
-architecture = Conv1DNet1Layer
+
+######################################################
+# setting up parameters and constants
+######################################################
+architecture = Conv2DNet2Layer  # select Model Architecture
 num_epochs = 1
 learning_rate = 0.0001
 batch_size = 64
 patience = 15
-model_args = {
-    'input_channel': 1,
-
-    'channel_layer1': 32,
-    'kernel_layer1': 5,
-    'stride_layer1': 2,
-    'padding_layer1': 2,
-
-    'channel_layer2': 64,
-    'kernel_layer2': 5,
-    'stride_layer2': 2,
-    'padding_layer2': 2,
-
-    'channel_layer3': 0,
-    'kernel_layer3': 0,
-    'stride_layer3': 0,
-    'padding_layer3': 0,
-
-    'channel_layer4': 0,
-    'kernel_layer4': 0,
-    'stride_layer4': 0,
-    'padding_layer4': 0,
-
-    'channel_layer5': 0,
-    'kernel_layer5': 0,
-    'stride_layer5': 0,
-    'padding_layer5': 0,
-
-    'channel_layer6': 0,
-    'kernel_layer6': 0,
-    'stride_layer6': 0,
-    'padding_layer6': 0,
-
-    'channel_layer7': 0,
-    'kernel_layer7': 0,
-    'stride_layer7': 0,
-    'padding_layer7': 0,
-
-    'channel_layer8': 0,
-    'kernel_layer8': 0,
-    'stride_layer8': 0,
-    'padding_layer8': 0,
-
-    'channel_layer9': 0,
-    'kernel_layer9': 0,
-    'stride_layer9': 0,
-    'padding_layer9': 0,
-
-    'channel_layer10': 0,
-    'kernel_layer10': 0,
-    'stride_layer10': 0,
-    'padding_layer10': 0,
-
-    'channel_linear': 6*6*64,
-    'num_classes': 7
-}
 
 IMG_DIR = "./img/"
 DATA_DIR = "./data/"
@@ -100,7 +47,6 @@ else:
     print('Failed to find GPU. Will use CPU.\n')
     device = 'cpu'
 
-# model = architecture(**model_args).to(device)
 model = architecture().to(device)
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -190,20 +136,6 @@ for epoch in range(num_epochs):
     print(f'Epoch: {epoch + 1}/{num_epochs}.. '
           f'Training loss: {train_loss}.. Validation Loss: {valid_loss}.. '
           f'Training accuracy: {train_accuracy}.. Validation accuracy: {valid_accuracy}')
-
-    # early stopping (based on validation accuracy)
-    # if max_val_acc < valid_accuracy:
-    #     max_val_acc = valid_accuracy
-    #     weights = copy.deepcopy(model.state_dict())
-    #     stopping = 0
-    # else:
-    #     stopping = stopping + 1
-    #
-    # if stopping == patience:
-    #     print('Early stopping...')
-    #     print('Restoring best weights')
-    #     model.load_state_dict(weights)
-    #     break
 
     # early stopping (based on validation loss)
     if min_valid_loss > valid_loss:
@@ -318,6 +250,3 @@ for num_layer in range(len(outputs)):
     plt.savefig(IMG_DIR + model.__class__.__name__ + "_layer%s_feature_maps.png" % str(num_layer + 1))
     plt.show()
     plt.close()
-
-print("train_loss,          valid_loss,         train_accuracy,    valid_accuracy,     accuracy,          precision,          recall,             fscore")
-print(train_loss, valid_loss, train_accuracy, valid_accuracy, accuracy, precision, recall, fscore)

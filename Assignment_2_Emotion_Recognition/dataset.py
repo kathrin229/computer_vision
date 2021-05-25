@@ -3,8 +3,11 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import TensorDataset, DataLoader
-from models import Conv1DNet1Layer, Conv1DNet2Layer, Conv2DNet1Layer, Conv2DNet2Layer, Conv2DNet3Layer, Conv2DNet4Layer, Conv2DNet5Layer, Conv2DNet6Layer, Conv2DNet7Layer, Conv2DNet8Layer, Conv2DNet9Layer, Conv2DNet10Layer
 
+
+###############################################################################
+# Loading the dataset and saving the an np array with the right shape and types
+###############################################################################
 def load_data(src, dest):
     print('Load data...')
     dataset_path = dest
@@ -32,6 +35,9 @@ def load_data(src, dest):
         return np.load(dataset_path)
 
 
+###############################################################################
+# Preprocessing the data array for 1D or 2D convolutional layers
+###############################################################################
 def preprocess_data(data, architecture):
 
     # training, test, validation (x data shape: sample size, channel size, height, width)
@@ -65,6 +71,9 @@ def preprocess_data(data, architecture):
     return x_train, y_train, x_valid, y_valid, x_test, y_test
 
 
+###############################################################################
+# Returns pytorch dataloader for Train, Test and Validation Set
+###############################################################################
 def get_data_loader(data, batch_size, architecture, shuffle, drop_last):
 
     x_train, y_train, x_valid, y_valid, x_test, y_test = preprocess_data(data, architecture)
